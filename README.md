@@ -177,7 +177,39 @@
 
 ---
 
-## 💻 Technology Stack
+## � System Flow Diagrams
+
+<div align="center">
+
+### User Flow & Navigation
+
+<img src="docs/diagrams/user_flow.eraser" alt="User Flow Diagram" width="800"/>
+
+*Complete user journey from app launch to feature access for both Farmer and Admin roles*
+
+### ML Services Architecture
+
+<img src="docs/diagrams/ml_services.eraser" alt="ML Services Architecture" width="800"/>
+
+*Three-layer architecture showing Mobile/Backend Layer, ML Intelligence Layer (FastAPI), and Specialized Models*
+
+### Local Development Setup (Ngrok)
+
+<img src="docs/diagrams/ngrok_simulation.eraser" alt="Ngrok Development Setup" width="800"/>
+
+*Development workflow using Ngrok for secure tunneling between local services and mobile devices*
+
+**Key Flows:**
+- 🔐 **Authentication**: OTP-based signup/login with role-based access control
+- 🎯 **Feature Access**: Dedicated dashboards for Farmers (Farm Management, AI Tools, Chatbot) and Admins (Village Analytics, Water Optimization)
+- 🤖 **ML Pipeline**: API requests flow through secure ML Gateway to specialized models (Soil Moisture, Crop Water, Village Optimization, Chatbot)
+- 🔧 **Development**: Local services exposed via Ngrok for real-time mobile testing
+
+</div>
+
+---
+
+## �💻 Technology Stack
 
 <div align="center">
 

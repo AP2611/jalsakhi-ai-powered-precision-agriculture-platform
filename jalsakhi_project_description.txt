@@ -1,0 +1,61 @@
+
+title: JalSakhi - AI-Powered Precision Agriculture Platform,
+shortDescription: Smart water management and precision agriculture for Indian farmers, powered by AI, ML, and a cross-platform mobile app.,
+description: JalSakhi is an open-source, AI-powered precision agriculture platform designed to optimize water management for farmers and village administrators in India. The platform features a cross-platform mobile app (React Native + Expo), a Node.js/Express backend, and Python FastAPI-based ML microservices for crop water prediction, soil moisture forecasting, village water allocation, and an AI chatbot. JalSakhi supports multilingual interfaces (English, Hindi, Marathi), role-based access, real-time weather, analytics, and a collaborative open-source community.,
+projectDate: 2026-02-23,
+tags: [
+  AI,
+  Machine Learning,
+  Precision Agriculture,
+  Water Management,
+  React Native,
+  Expo,
+  Node.js,
+  Express,
+  MongoDB,
+  FastAPI,
+  Python,
+  Open Source,
+  India,
+  Multilingual
+],
+techStack: [
+  React Native 0.81,
+  Expo SDK 54,
+  TypeScript,
+  Node.js 18+,
+  Express.js 4,
+  MongoDB Atlas,
+  JWT Auth,
+  Python 3.10+,
+  FastAPI,
+  Scikit-learn,
+  TensorFlow,
+  LangChain,
+  Groq Llama 3.1
+],
+category: saas,
+isFeatured: true,
+image: images/logo.png,
+videoUrl: ,
+githubUrl: https://github.com/Sameer-Bagul/jalsakhi-ai-powered-precision-agriculture-platform,
+liveUrl: ,
+contributors: [
+  Sameer Bagul,
+  JalSakhi Team,
+  Open Source Community
+],
+features: [
+  AI-driven crop water requirement prediction,
+  Soil moisture forecasting (7-day),
+  Village-level water allocation optimization,
+  Multilingual support (EN/HI/MR),
+  Role-based dashboards for farmers and admins,
+  Real-time weather integration,
+  Irrigation logging and analytics,
+  AI Chatbot (Groq Llama 3.1),
+  Mobile-first, cross-platform app,
+  Open-source, community-driven development
+],
+sequence: 1
+
