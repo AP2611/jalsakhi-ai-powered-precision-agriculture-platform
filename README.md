@@ -183,19 +183,19 @@
 
 ### User Flow & Navigation
 
-<img src="docs/diagrams/user_flow.eraser" alt="User Flow Diagram" width="800"/>
+<img src="images/appflow.png" alt="User Flow Diagram" width="800"/>
 
 *Complete user journey from app launch to feature access for both Farmer and Admin roles*
 
 ### ML Services Architecture
 
-<img src="docs/diagrams/ml_services.eraser" alt="ML Services Architecture" width="800"/>
+<img src="images/MLservice.png" alt="ML Services Architecture" width="800"/>
 
 *Three-layer architecture showing Mobile/Backend Layer, ML Intelligence Layer (FastAPI), and Specialized Models*
 
 ### Local Development Setup (Ngrok)
 
-<img src="docs/diagrams/ngrok_simulation.eraser" alt="Ngrok Development Setup" width="800"/>
+<img src="images/ngrok.png" alt="Ngrok Development Setup" width="400"/>
 
 *Development workflow using Ngrok for secure tunneling between local services and mobile devices*
 
