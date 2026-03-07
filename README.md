@@ -253,7 +253,7 @@ Ensure you have the following installed:
 
 ```bash
 # Clone repository
-git clone https://github.com/YOUR_USERNAME/jalsakhi-ai-powered-precision-agriculture-platform.git
+git clone https://github.com/Sameer-Bagul/jalsakhi-ai-powered-precision-agriculture-platform.git
 cd jalsakhi-ai-powered-precision-agriculture-platform
 
 # Run automated setup
