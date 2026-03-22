@@ -1,0 +1,54 @@
+direction right
+colorMode bold
+typeface clean
+styleMode plain
+
+AccessLayer [label: "User Access & Frontend", color: blue] {
+  FarmerApp [icon: mobile, label: "Farmer Mobile App (React Native/Expo)", color: blue]
+  AdminPortal [icon: desktop, label: "Village Admin Portal (React/Tailwind)", color: blue]
+  PublicSite [icon: globe, label: "Project Landing Page (Vite/Next.js)", color: blue]
+}
+
+CloudGateway [label: "Secure API Connectivity", color: orange] {
+  NgrokTunnel [icon: connection, label: "Ngrok Secure Tunnel (Local Dev)", color: orange]
+  AzureAPI [icon: azure-gateway, label: "Azure API Management (Production)", color: orange]
+  AuthService [icon: key, label: "Firebase/JWT Authentication", color: orange]
+}
+
+DataHub [label: "Core Application Logic", color: green] {
+  ExpressServer [icon: nodejs, label: "Node.js/Express Backend", color: green]
+  CloudDB [icon: mongodb, label: "MongoDB Atlas (Global Storage)", color: green]
+  RedisCache [icon: database, label: "In-Memory Prediction Cache", color: green]
+}
+
+IntelligenceEngine [label: "JalSakhi AI Intelligence (FastAPI)", color: purple] {
+  PredictionGateway [icon: fastapi, label: "FastAPI Routing Layer", color: purple]
+  
+  ModelZoo [label: "Specialized ML Microservices", color: purple] {
+    CropWaterModel [icon: brain, label: "Crop Water: Scikit-Learn RF", color: purple]
+    SoilForecaster [icon: activity, label: "Soil Health: Prophet/LSTM", color: purple]
+    WaterOptimizer [icon: settings, label: "Resource Allocation: Heuristic Engine", color: purple]
+    MultilingualLLM [icon: message-square, label: "AI Advisor: Llama 3 Client", color: purple]
+  }
+}
+
+EdgeData [label: "Real-time Telemetry & Ingestion", color: red] {
+  IoTSensors [icon: cpu, label: "Field IoT Sensors (ESP32/LoRa)", color: red]
+  LiveWeather [icon: cloud, label: "OpenWeatherMap/Agro-API", color: red]
+  ExternalAI [icon: zap, label: "Groq LLM Inference Cloud", color: red]
+}
+
+// System Data Flow
+AccessLayer > CloudGateway: "HTTPS/WSS Requests"
+CloudGateway > ExpressServer: "Decrypted Traffic"
+ExpressServer > CloudDB: "Store User/Farm State"
+ExpressServer > RedisCache: "Check for Cached Insights"
+
+ExpressServer > PredictionGateway: "Inference Req (JSON)"
+PredictionGateway > ModelZoo: "Multicast to Microservices"
+
+ModelZoo > EdgeData: "Ingest Live Features"
+IoTSensors > PredictionGateway: "Sensor MQTT/Webhook"
+ModelZoo > ExpressServer: "Precise Irrigation Plans"
+
+ExpressServer > AccessLayer: "Push Notifications & Desktop Alerts"

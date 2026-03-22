@@ -1,0 +1,190 @@
+============================================================
+   JALSAKHI - AI-Powered Precision Agriculture Platform
+                   Presentation (6 Slides)
+============================================================
+
+
+------------------------------------------------------------
+SLIDE 1: Problem Statement
+------------------------------------------------------------
+
+Title: The Water Crisis in Indian Agriculture
+
+• India uses 80% of its freshwater for agriculture, yet irrigation efficiency is just 35-40%
+• 50M+ farmers rely on outdated, guesswork-based irrigation — no data, no predictions
+• Changing weather patterns make traditional schedules unreliable
+• No system exists to fairly distribute village-level water across multiple farms
+• Language barriers block farmers from using existing tech tools (most are English-only)
+• Result: Massive water waste, crop losses, and unfair resource distribution
+
+Why It Matters:
+Agriculture supports 58% of India's population. Without smart water management,
+food security and farmer livelihoods are at serious risk.
+
+
+------------------------------------------------------------
+SLIDE 2: Our Solution — JalSakhi
+------------------------------------------------------------
+
+Title: JalSakhi — Your Water Friend
+
+JalSakhi is an AI-powered mobile platform that puts smart water management
+directly in the hands of farmers — in their own language.
+
+How It Solves the Problem:
+• Crop Water Prediction — Tells exactly how much water a crop needs per day (liters/acre)
+• Soil Moisture Forecasting — Predicts soil moisture for the next 7 days, so farmers irrigate proactively
+• Village Water Allocation — Fairly distributes available reservoir water across all farms using optimization
+• AI Chatbot — Farmers ask questions in Hindi, Marathi, or English and get instant expert advice
+
+What Makes It Stand Out:
+• Multilingual (English, Hindi, Marathi) — built for real Indian farmers
+• Role-based access — separate dashboards for Farmers and Admins
+• Works offline — data is cached locally for areas with poor connectivity
+• All 4 AI services run independently and can scale on their own
+
+
+------------------------------------------------------------
+SLIDE 3: System Architecture & Data Flow
+------------------------------------------------------------
+
+Title: Architecture — How It All Connects
+
+System Layers:
+
+  Mobile App (React Native + Expo)
+        ↓
+  Backend API (Node.js + Express + MongoDB Atlas)
+        ↓
+  ML Gateway (Security + Rate Limiting)
+        ↓
+  ┌────────────┬────────────┬────────────┬────────────┐
+  │ Crop Water │   Soil     │  Village   │    AI      │
+  │ Prediction │  Moisture  │   Water    │  Chatbot   │
+  │ (FastAPI)  │ (FastAPI)  │ (FastAPI)  │ (FastAPI)  │
+  └────────────┴────────────┴────────────┴────────────┘
+
+Data Flow:
+1. User logs in → JWT token issued → Role-based dashboard loads
+2. Farmer selects a service (e.g., Crop Water Prediction)
+3. App sends request → Backend → ML Gateway → Specific ML Service
+4. ML model runs prediction → Result sent back to app
+5. Result displayed + cached in AsyncStorage for offline use
+
+Key Design Decisions:
+• Microservices — each ML model is a separate FastAPI service (ports 8001-8004)
+• ML Gateway — handles API key auth, rate limiting (100 req/min), request validation
+• MongoDB Atlas — cloud database for user, farm, and irrigation data
+• Offline-first — AsyncStorage caches data for spotty rural connectivity
+
+
+------------------------------------------------------------
+SLIDE 4: Tech Stack
+------------------------------------------------------------
+
+Title: Technology Stack
+
+MOBILE APP:
+• React Native 0.81 + Expo SDK 54 — Cross-platform mobile development
+• TypeScript — Type safety across the codebase
+• Expo Router — File-based navigation
+• i18next — Multilingual support (EN/HI/MR)
+• AsyncStorage — Local data caching for offline mode
+• Axios — HTTP client for API calls
+
+BACKEND:
+• Node.js 18+ + Express.js 4 — REST API server
+• MongoDB Atlas + Mongoose — Cloud database with ODM
+• JWT + bcrypt — Secure authentication
+• Nodemailer — Email OTP verification
+• Helmet + CORS — Security middleware
+
+ML SERVICES (Python):
+• FastAPI — High-performance API framework for each model
+• Scikit-learn — Random Forest model for crop water prediction
+• Prophet + LSTM (TensorFlow) — Time-series soil moisture forecasting
+• LangChain + Groq SDK — RAG chatbot with Llama 3.1 8B
+
+DEVOPS:
+• Ngrok — Secure HTTPS tunnels for local-to-mobile testing
+• ML Gateway (Express) — Centralized security and routing layer
+• Azure App Service — Production backend hosting
+
+
+------------------------------------------------------------
+SLIDE 5: Key Features & USP
+------------------------------------------------------------
+
+Title: What Makes JalSakhi Unique
+
+CORE FEATURES:
+
+1. AI Crop Water Prediction
+   - Random Forest model takes crop type, soil, region, weather
+   - Outputs exact water need in mm/day and liters/acre/day
+
+2. 7-Day Soil Moisture Forecast
+- Prophet + LSTM models predict moisture trends
+- Supports both sensor-based and location-based input
+
+3. Village Water Allocation Engine
+   - Optimization algorithm distributes reservoir water fairly
+   - Considers crop demand, soil deficit, and priority scores
+
+4. Multilingual RAG Chatbot
+   - Llama 3.1 8B via Groq — real-time farming advice
+   - Understands context, pulls live data from ML services
+   - Responds in English, Hindi, or Marathi
+
+USER EXPERIENCE:
+• Mobile-first — works on any Android/iOS device
+• One-tap access to predictions from the dashboard
+• Interactive charts for soil moisture trends
+• Admin panel with village-wide analytics and allocation tools
+
+TECHNICAL EDGE:
+• 4 independent microservices — scale each model separately
+• 20+ RESTful API endpoints
+• Offline-first with persistent caching
+• Secure: JWT auth, API key gateway, rate limiting, HTTPS
+
+
+------------------------------------------------------------
+SLIDE 6: References & Links
+------------------------------------------------------------
+
+Title: Resources & References
+
+GitHub Repository:
+  https://github.com/Sameer-Bagul/jalsakhi-ai-powered-precision-agriculture-platform
+
+Documentation:
+  • Architecture: docs/ARCHITECTURE.md
+  • API Reference: docs/API.md
+  • Development Guide: docs/DEVELOPMENT.md
+
+APIs & Services Used:
+  • Groq API — Free Llama 3.1 8B inference for chatbot
+  • MongoDB Atlas — Cloud-hosted NoSQL database
+  • OpenWeatherMap — Real-time weather data integration
+  • Ngrok — Secure tunneling for development
+
+Libraries & Frameworks:
+  • FastAPI — https://fastapi.tiangolo.com
+  • Scikit-learn — https://scikit-learn.org
+  • Prophet — https://facebook.github.io/prophet
+  • TensorFlow/Keras — https://tensorflow.org
+  • LangChain — https://langchain.com
+  • React Native — https://reactnative.dev
+  • Expo — https://expo.dev
+
+Research References:
+  • FAO Guidelines on Crop Water Requirements (FAO-56)
+  • India Water Resources Information System (WRIS)
+  • ICAR Crop Water Requirement Data
+
+Contact:
+  Sameer Bagul — sameerbagul2004@gmail.com
+  License: MIT
+
+============================================================

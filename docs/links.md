@@ -2,6 +2,11 @@
 
 This file contains the final, verified links to the generated diagrams with corrected syntax.
 
+## 🌟 Unified Project Architecture (Deep Dive - PPT)
+- **Image URL**: [Unified Architecture Image](https://storage.googleapis.com/second-petal-295822.appspot.com/elements/elements%3A32ea8a5841383233af2bd6f9c68cb285fa2e3d75b32056e00fddcb9b10f5fd9e.png)
+- **Eraser Editor**: [Edit Unified Architecture](https://app.eraser.io/new?requestId=NiW5pYcwXhSiRb3DiUl6&state=jr061y2aagxmp8bHD34hb)
+- **Local Source**: [unified_architecture.eraser](./diagrams/unified_architecture.eraser)
+
 ## 1. User Flow Diagram
 - **Image URL**: [User Flow Image](https://storage.googleapis.com/second-petal-295822.appspot.com/elements/elements%3Ad6c9e3e208564d63ef5f584ec0d9de850c09f9d6a701945ed2babee5cdc7a643.png)
 - **Eraser Editor**: [Edit User Flow](https://app.eraser.io/new?requestId=fWMTWVrghfKH6VP4tnVE&state=2HgCD8abogVKJwrjrFai2)
