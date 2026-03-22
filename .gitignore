@@ -1,20 +1,162 @@
-# Dependencies
-node_modules/
+# ========================================
+# JalSakhi - Comprehensive .gitignore
+# ========================================
 
-# Trained model artifacts (large; regenerate with train.py)
-soil_moisture_model/*.joblib
-
-# Python
-__pycache__/
-*.pyc
-*.pyo
-
-# Environment files
+# ============ Security & Secrets ============
 .env
+.env.local
+.env.*.local
+*.pem
+*.key
+*.p12
+*.mobileprovision
+secrets/
+config/secrets.json
 
-# Expo
+# ============ Python ============
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.manifest
+*.spec
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv
+.python-version
+
+# ML model artifacts (IMPORTANT - merged both)
+*.joblib
+soil_moisture_model/*.joblib
+*.pkl
+*.pickle
+*.h5
+*.hdf5
+*.pb
+*.onnx
+*.pt
+*.pth
+saved_models/
+checkpoints/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb_checkpoints/
+
+# IDEs
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+*.code-workspace
+
+# ============ Node.js ============
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Lock files (optional)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Build outputs
+dist/
+build/
+out/
+*.tsbuildinfo
+
+# ============ React Native / Expo ============
 .expo/
+.expo-shared/
+expo-env.d.ts
 
-# OS files
+.react-native/
+android/.gradle/
+android/app/build/
+android/build/
+android/.idea/
+android/local.properties
+ios/Pods/
+ios/build/
+ios/*.xcworkspace
+!ios/*.xcworkspace/contents.xcworkspacedata
+*.xcuserstate
+
+.metro-health-check*
+*.jsbundle
+
+# Testing
+coverage/
+.nyc_output/
+junit.xml
+
+# ============ Databases ============
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+*.log
+
+data/
+mongodb/
+
+# ============ OS Files ============
 .DS_Store
 Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# ============ Build & Deployment ============
+eas-build-*/
+*.aab
+*.apk
+*.ipa
+deploy/
+.deployment
+
+# ============ Logs ============
+logs/
+*.log
+
+# ============ Temp ============
+tmp/
+temp/
+*.tmp
+.cache/
+
+# ============ Project Specific ============
+*.csv
+!**/DATASET*.csv
+!**/sample*.csv
+
+docs/_build/
+site/
+
+*.bak
+*.backup
+*-backup.*
+
+landing-page/
