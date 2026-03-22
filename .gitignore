@@ -1,6 +1,20 @@
+# Dependencies
+node_modules/
+
 # Trained model artifacts (large; regenerate with train.py)
 soil_moisture_model/*.joblib
+
 # Python
 __pycache__/
 *.pyc
 *.pyo
+
+# Environment files
+.env
+
+# Expo
+.expo/
+
+# OS files
+.DS_Store
+Thumbs.db
