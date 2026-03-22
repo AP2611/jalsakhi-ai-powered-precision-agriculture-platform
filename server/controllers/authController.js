@@ -10,7 +10,7 @@ import { EMAIL_VERIFY_TEMPLATE, PASSWORD_RESET_TEMPLATE } from '../config/emailT
 
 export const register = async (req, res) => {
   // Function to register/create a new user
-  const { name, email, password, role, mobile, state, district, taluka, village, farmSize } = req.body;
+  const { name, email, password, role, mobile, aadhar, gender, state, district, taluka, village, farmSize } = req.body;
   if (!email || !role) {
     return res.json({ success: false, message: 'Email and role are required' });
   }
@@ -28,6 +28,8 @@ export const register = async (req, res) => {
       password: hashedPassword,
       role,
       mobile,
+      aadhar,
+      gender,
       state,
       district,
       taluka,
@@ -35,29 +37,38 @@ export const register = async (req, res) => {
       farmSize
     });
 
-    await user.save(); // Save the user in the database using Mongoose's save() method
-    // Generate a token using JWT
+    // Generate Verification OTP
+    const otp = String(Math.floor(100000 + Math.random() * 900000));
+    user.verifyOtp = otp;
+    user.verifyOtpExpireAt = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' }); // Create a token with the user ID and secret key, set to expire in 7 days  
+    await user.save();
+
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
     res.cookie('token', token, {
-      httpOnly: true, // The cookie is not accessible by client-side scripts
-      secure: process.env.NODE_ENV === 'production', // The cookie will only be set over HTTPS in production
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict', // Prevents cross-site request forgery, set to 'none' in production
-      maxAge: 7 * 24 * 60 * 60 * 1000 // The cookie will expire in 7 days
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000
     });
 
-    // sending welcome Email to the user 
+    // Send OTP Email
     const mailOptions = {
       from: process.env.SENDER_EMAIL,
       to: email,
-      subject: 'Welcome to MERN Auth',
-      text: `Welcome to MERN Auth, ${name}. You have successfully registered on our platform.`
+      subject: 'Verify your account',
+      html: EMAIL_VERIFY_TEMPLATE.replace('{{otp}}', otp).replace('{{email}}', user.email),
+      attachments: [{
+        filename: 'logo.png',
+        path: './assets/images/logo.png',
+        cid: 'logo'
+      }]
     };
 
-    await transporter.sendMail(mailOptions); // Send the email to the user
+    await transporter.sendMail(mailOptions);
 
-    res.json({ success: true, message: 'User registered successfully' }); // Send a success response
+    res.json({ success: true, message: 'User registered. Please verify your email with the OTP sent.', token, userId: user._id }); // Send a success response
   }
   catch (error) {
 
@@ -80,14 +91,14 @@ export const login = async (req, res) => {
       return res.json({ success: false, message: 'Invalid Password' });
     }
     // Generate a token using JWT 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' }); // Create a token with the user ID and secret key, set to expire in 7 days
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
     res.cookie('token', token, {
-      httpOnly: true, // The cookie is not accessible by client-side scripts
-      secure: process.env.NODE_ENV === 'production', // The cookie will only be set over HTTPS in production
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict', // Prevents cross-site request forgery, set to 'none' in production
-      maxAge: 7 * 24 * 60 * 60 * 1000 // The cookie will expire in 7 days
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000
     });
-    return res.json({ success: true, message: 'User logged in successfully' }); // Send a success response
+    return res.json({ success: true, message: 'User logged in successfully', token, userId: user._id });
   } catch (error) {
     res.json({ success: false, message: error.message });
   }
@@ -128,7 +139,12 @@ export const sendVerifyOtp = async (req, res) => {
       to: user.email,
       subject: 'Verify your account',
       // text: `Your OTP to verify your account is ${otp}`,
-      html: EMAIL_VERIFY_TEMPLATE.replace('{{otp}}', otp).replace('{{email}}', user.email)
+      html: EMAIL_VERIFY_TEMPLATE.replace('{{otp}}', otp).replace('{{email}}', user.email),
+      attachments: [{
+        filename: 'logo.png',
+        path: './assets/images/logo.png',
+        cid: 'logo'
+      }]
     };
 
     await transporter.sendMail(mailOption); // Send the email to the user
@@ -204,7 +220,12 @@ export const sendResetOtp = async (req, res) => {
       to: user.email,
       subject: 'Reset OTP for your account',
       // text: `Your OTP for resetin your password is: ${otp}`,
-      html: PASSWORD_RESET_TEMPLATE.replace('{{otp}}', otp).replace('{{email}}', user.email)
+      html: PASSWORD_RESET_TEMPLATE.replace('{{otp}}', otp).replace('{{email}}', user.email),
+      attachments: [{
+        filename: 'logo.png',
+        path: './assets/images/logo.png',
+        cid: 'logo'
+      }]
     };
 
     await transporter.sendMail(mailOption); // Send the email to the user

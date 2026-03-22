@@ -1,0 +1,30 @@
+"Mobile & Backend Layer" {
+  App [shape: rectangle, label: "React Native App (Expo)"]
+  Backend [shape: rectangle, label: "Node.js Express (Azure)"]
+  DB [shape: cylinder, label: "MongoDB Atlas"]
+}
+
+"ML Intelligence Layer (FastAPI)" {
+  Gateway [shape: rectangle, label: "Secure ML Gateway"]
+  
+  "Specialized Models" {
+    Crop [shape: rectangle, label: "Crop Water: RF Model (Calculates Liters/Acre)"]
+    Soil [shape: rectangle, label: "Soil Moisture: Prophet/LSTM (7-Day Forecast)"]
+    Alloc [shape: rectangle, label: "Village Optimizer: Heuristic (Fair Distribution)"]
+    Chat [shape: rectangle, label: "Chatbot: Llama 3.1 via Groq (Natural Language)"]
+  }
+}
+
+// Data Flow
+App > Backend: "API Requests"
+Backend > DB: "User/Farm Data"
+Backend > Gateway: "Prediction Trigger"
+
+Gateway > Crop: "Growth Stage & Weather"
+Gateway > Soil: "Sensor & Regional Data"
+Gateway > Alloc: "Village Demand vs Reservoir"
+Gateway > Chat: "User Query (Multilingual)"
+
+Crop > Backend: "Precise Water Recipe"
+Soil > Backend: "Moisture Trends"
+Alloc > Backend: "Optimized Allocation Plan"

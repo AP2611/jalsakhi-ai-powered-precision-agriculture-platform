@@ -1,0 +1,20 @@
+"Local Development PC" {
+  Srv [shape: rectangle, label: "Express Server (Port 5000)"]
+  ML [shape: rectangle, label: "FastAPI Services (Port 8000)"]
+  NgProc [shape: rectangle, label: "Ngrok Agent (Tunneling)"]
+}
+
+"Cloud / Internet" {
+  NgCloud [shape: oval, icon: cloud, label: "Ngrok Cloud Service"]
+  URL [shape: oval, label: "https://your-alias.ngrok-free.app"]
+}
+
+Mobile [shape: rectangle, label: "Farmer Mobile Device"]
+
+// Simulation Flow
+Srv > NgProc: "Local Traffic"
+ML > NgProc: "Local Traffic"
+NgProc > NgCloud: "Secure TCP Tunnel"
+NgCloud > URL: "Public Endpoint"
+URL > Mobile: "Real-time Access"
+Mobile > URL: "Sends JSON/Requests"

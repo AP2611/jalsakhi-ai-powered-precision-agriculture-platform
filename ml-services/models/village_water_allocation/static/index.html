@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Village Water Allocation – Test UI</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; max-width: 900px; margin: 0 auto; padding: 20px; background: #f5f7f5; color: #1a1a1a; }
+    h1 { color: #1B4332; margin-bottom: 0.25em; }
+    .subtitle { color: #555; font-size: 0.95rem; margin-bottom: 24px; }
+    section { background: #fff; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+    section h2 { margin-top: 0; color: #2D6A4F; font-size: 1.1rem; }
+    label { display: block; margin-bottom: 4px; font-weight: 500; font-size: 0.9rem; }
+    input, select { padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; width: 100%; }
+    input:focus, select:focus { outline: none; border-color: #2D6A4F; }
+    .row { display: flex; gap: 12px; flex-wrap: wrap; }
+    .row > * { flex: 1; min-width: 100px; }
+    .farm-block { border: 1px solid #B7E4C7; border-radius: 8px; padding: 14px; margin-bottom: 12px; background: #F8FAF8; }
+    .farm-block h3 { margin: 0 0 10px 0; font-size: 0.95rem; color: #40916C; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+    button { padding: 10px 18px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 14px; }
+    .btn-primary { background: #2D6A4F; color: #fff; }
+    .btn-primary:hover { background: #1B4332; }
+    .btn-secondary { background: #e0e0e0; color: #333; }
+    .btn-secondary:hover { background: #d0d0d0; }
+    .btn-danger { background: #dc3545; color: #fff; padding: 6px 12px; font-size: 12px; }
+    .btn-danger:hover { background: #c82333; }
+    #result { margin-top: 20px; }
+    #result h2 { color: #2D6A4F; }
+    .error { background: #fff5f5; border: 1px solid #feb2b2; color: #c53030; padding: 12px; border-radius: 8px; margin-bottom: 12px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem; }
+    th, td { padding: 10px; text-align: left; border-bottom: 1px solid #eee; }
+    th { background: #D8F3DC; color: #1B4332; font-weight: 600; }
+    .metric { display: inline-block; background: #D8F3DC; padding: 8px 14px; border-radius: 8px; margin-right: 12px; margin-bottom: 8px; font-weight: 600; color: #1B4332; }
+    .hint { font-size: 0.8rem; color: #666; margin-top: 2px; }
+    .optional { color: #888; font-weight: normal; }
+  </style>
+</head>
+<body>
+  <h1>Village Water Allocation (Model 3)</h1>
+  <p class="subtitle">Enter total reservoir water and farm details. Leave "Crop water (mm/day)" empty to use the Crop Water API (Model 1) if it’s running on port 8001.</p>
+
+  <section>
+    <h2>Reservoir</h2>
+    <div class="row">
+      <div style="max-width: 260px;">
+        <label for="total">Total available water (liters) *</label>
+        <input type="number" id="total" min="1" value="450000" placeholder="e.g. 450000">
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Farms</h2>
+    <div id="farms-container"></div>
+    <button type="button" class="btn-secondary" id="add-farm">+ Add farm</button>
+  </section>
+
+  <section>
+    <button type="button" class="btn-primary" id="run-optimize">Run optimization</button>
+    <div id="result"></div>
+  </section>
+
+  <script>
+    const CROP_TYPES = ["BANANA","BEAN","CABBAGE","CITRUS","COTTON","MAIZE","MELON","MUSTARD","ONION","POTATO","RICE","SOYABEAN","SUGARCANE","TOMATO","WHEAT"];
+    const SOIL_TYPES = ["DRY","HUMID","WET"];
+    const REGIONS = ["DESERT","HUMID","SEMI ARID","SEMI HUMID"];
+    const WEATHER = ["NORMAL","RAINY","SUNNY","WINDY"];
+    const TEMPERATURES = ["10-20","20-30","30-40","40-50"];
+    let farmIndex = 0;
+
+    function newFarmId() { return "farm_" + (++farmIndex); }
+
+    function renderSelect(options, value) {
+      return options.map(o => `<option value="${o}" ${o === value ? 'selected' : ''}>${o}</option>`).join('');
+    }
+
+    function addFarm(data = {}) {
+      const id = data.farm_id || newFarmId();
+      const block = document.createElement('div');
+      block.className = 'farm-block';
+      block.dataset.farmId = id;
+      block.innerHTML = `
+        <h3>Farm: ${id}</h3>
+        <div class="grid">
+          <div>
+            <label>Farm ID *</label>
+            <input type="text" class="farm-id" value="${id}" placeholder="e.g. farm_1">
+          </div>
+          <div>
+            <label>Area (hectares) *</label>
+            <input type="number" class="area-ha" min="0" step="0.01" value="${data.area_ha ?? 2}" placeholder="e.g. 2">
+          </div>
+          <div>
+            <label>Crop type *</label>
+            <select class="crop-type">${renderSelect(CROP_TYPES, data.crop_type || 'RICE')}</select>
+          </div>
+          <div>
+            <label>Soil type *</label>
+            <select class="soil-type">${renderSelect(SOIL_TYPES, data.soil_type || 'WET')}</select>
+          </div>
+          <div>
+            <label>Region *</label>
+            <select class="region">${renderSelect(REGIONS, data.region || 'SEMI HUMID')}</select>
+          </div>
+          <div>
+            <label>Temperature *</label>
+            <select class="temperature">${renderSelect(TEMPERATURES, data.temperature || '20-30')}</select>
+          </div>
+          <div>
+            <label>Weather *</label>
+            <select class="weather">${renderSelect(WEATHER, data.weather_condition || 'NORMAL')}</select>
+          </div>
+          <div>
+            <label>Priority (1=low, 3=high) *</label>
+            <select class="priority">
+              <option value="1" ${(data.priority_score ?? 2) === 1 ? 'selected' : ''}>1 – Low</option>
+              <option value="2" ${(data.priority_score ?? 2) === 2 ? 'selected' : ''}>2 – Medium</option>
+              <option value="3" ${(data.priority_score ?? 2) === 3 ? 'selected' : ''}>3 – High</option>
+            </select>
+          </div>
+          <div>
+            <label>Crop water (mm/day) <span class="optional">optional</span></label>
+            <input type="number" class="mm-per-day" min="0" step="0.01" value="${data.crop_water_requirement_mm_per_day ?? ''}" placeholder="Leave empty to use Model 1">
+            <div class="hint">If set, Model 1 is not called</div>
+          </div>
+          <div>
+            <label>Soil moisture (%) <span class="optional">optional</span></label>
+            <input type="number" class="soil-moisture" min="0" max="100" step="0.1" value="${data.predicted_soil_moisture_pct ?? ''}" placeholder="Default 30">
+          </div>
+        </div>
+        <div style="margin-top: 10px;">
+          <button type="button" class="btn-danger remove-farm">Remove farm</button>
+        </div>
+      `;
+      document.getElementById('farms-container').appendChild(block);
+      block.querySelector('.remove-farm').onclick = () => block.remove();
+      block.querySelector('.farm-id').oninput = (e) => { block.dataset.farmId = e.target.value; };
+    }
+
+    function collectFarms() {
+      const blocks = document.querySelectorAll('#farms-container .farm-block');
+      const farms = [];
+      blocks.forEach(b => {
+        const areaHa = parseFloat(b.querySelector('.area-ha').value);
+        if (isNaN(areaHa) || areaHa <= 0) return;
+        const farm = {
+          farm_id: b.querySelector('.farm-id').value.trim() || b.dataset.farmId,
+          area_ha: areaHa,
+          crop_type: b.querySelector('.crop-type').value,
+          soil_type: b.querySelector('.soil-type').value,
+          region: b.querySelector('.region').value,
+          temperature: b.querySelector('.temperature').value,
+          weather_condition: b.querySelector('.weather').value,
+          priority_score: parseInt(b.querySelector('.priority').value, 10),
+        };
+        const mm = b.querySelector('.mm-per-day').value.trim();
+        if (mm !== '') farm.crop_water_requirement_mm_per_day = parseFloat(mm);
+        const sm = b.querySelector('.soil-moisture').value.trim();
+        if (sm !== '') farm.predicted_soil_moisture_pct = parseFloat(sm);
+        farms.push(farm);
+      });
+      return farms;
+    }
+
+    function formatNum(x) {
+      if (x >= 1e6) return (x / 1e6).toFixed(2) + 'M';
+      if (x >= 1e3) return (x / 1e3).toFixed(1) + 'K';
+      return Number(x).toLocaleString();
+    }
+
+    document.getElementById('add-farm').onclick = () => addFarm();
+
+    let optimizeAbortController = null;
+    let optimizeRequestId = 0;
+
+    document.getElementById('run-optimize').onclick = async () => {
+      const resultEl = document.getElementById('result');
+      const runBtn = document.getElementById('run-optimize');
+
+      const total = parseFloat(document.getElementById('total').value);
+      if (isNaN(total) || total <= 0) {
+        resultEl.innerHTML = '<div class="error">Please enter a valid total available water (liters).</div>';
+        return;
+      }
+      const farms = collectFarms();
+      if (farms.length === 0) {
+        resultEl.innerHTML = '<div class="error">Add at least one farm with a valid area (ha).</div>';
+        return;
+      }
+
+      if (optimizeAbortController) optimizeAbortController.abort();
+      optimizeAbortController = new AbortController();
+      const signal = optimizeAbortController.signal;
+      const myId = ++optimizeRequestId;
+
+      runBtn.disabled = true;
+      resultEl.innerHTML = '<p>Running…</p>';
+
+      try {
+        const payload = {
+          total_available_water_liters: parseFloat(document.getElementById('total').value),
+          farms: collectFarms(),
+        };
+        const res = await fetch('optimize?_=' + Date.now(), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
+          body: JSON.stringify(payload),
+          cache: 'no-store',
+          signal,
+        });
+        const data = await res.json().catch(() => ({}));
+        if (myId !== optimizeRequestId) return;
+        if (!res.ok) {
+          resultEl.innerHTML = '<div class="error">' + (data.detail || data.message || res.statusText) + '</div>';
+          return;
+        }
+        resultEl.innerHTML = `
+          <h2>Results</h2>
+          <div>
+            <span class="metric">Efficiency: ${data.village_efficiency_score}%</span>
+            <span class="metric">Total demand: ${formatNum(data.total_demand_liters)} L</span>
+            <span class="metric">Total allocated: ${formatNum(data.total_allocated_liters)} L</span>
+          </div>
+          <h3 style="margin-top: 20px;">Allocations</h3>
+          <table>
+            <thead><tr><th>Farm</th><th>Allocated (L)</th><th>Share %</th></tr></thead>
+            <tbody>
+              ${data.allocations.map(a => `<tr><td>${a.farm_id}</td><td>${formatNum(a.allocated_liters)}</td><td>${a.share_percent}%</td></tr>`).join('')}
+            </tbody>
+          </table>
+          <h3 style="margin-top: 20px;">Per-farm report</h3>
+          <table>
+            <thead><tr><th>Farm</th><th>Allocated</th><th>Demand</th><th>Deficit</th><th>Status</th></tr></thead>
+            <tbody>
+              ${data.per_farm_report.map(r => `
+                <tr>
+                  <td>${r.farm_id}</td>
+                  <td>${formatNum(r.allocated_liters)}</td>
+                  <td>${formatNum(r.demand_liters)}</td>
+                  <td>${r.deficit_liters > 0 ? formatNum(r.deficit_liters) : '—'}</td>
+                  <td>${r.status}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `;
+      } catch (err) {
+        if (myId !== optimizeRequestId) return;
+        if (err.name === 'AbortError') return;
+        resultEl.innerHTML = '<div class="error">Request failed: ' + err.message + '. Is the API running on this port?</div>';
+      } finally {
+        if (myId === optimizeRequestId) runBtn.disabled = false;
+      }
+    };
+
+    addFarm({ farm_id: '1', area_ha: 2, crop_type: 'RICE', soil_type: 'WET', region: 'SEMI HUMID', temperature: '20-30', weather_condition: 'NORMAL', priority_score: 3 });
+    addFarm({ farm_id: '2', area_ha: 1.2, crop_type: 'WHEAT', soil_type: 'DRY', region: 'SEMI ARID', temperature: '20-30', weather_condition: 'SUNNY', priority_score: 2 });
+    addFarm({ farm_id: '3', area_ha: 1.6, crop_type: 'MAIZE', soil_type: 'HUMID', region: 'HUMID', temperature: '20-30', weather_condition: 'NORMAL', priority_score: 1 });
+  </script>
+</body>
+</html>

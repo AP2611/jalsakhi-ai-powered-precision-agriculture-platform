@@ -5,24 +5,21 @@ const userSchema = new mongoose.Schema({
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     role: { type: String, enum: ['farmer', 'admin'], required: true },
-    mobile: { type: String },
-    state: { type: String },
-    district: { type: String },
-    taluka: { type: String },
-    village: { type: String },
-    farmSize: { type: String },
+    mobile: { type: String, default: '' },
+    aadhar: { type: String, default: '' },
+    gender: { type: String, enum: ['Male', 'Female', 'Other', ''], default: '' },
+    state: { type: String, default: '' },
+    district: { type: String, default: '' },
+    taluka: { type: String, default: '' },
+    village: { type: String, default: '' },
+    farmSize: { type: String, default: '' },
     verifyOtp: { type: String, default: '' },
     verifyOtpExpireAt: { type: Number, default: 0 },
     isAccountVerified: { type: Boolean, default: false },
     resetOtp: { type: String, default: '' },
     resetOtpExpireAt: { type: Number, default: 0 },
-})
+}, { timestamps: true });
 
 const userModel = mongoose.models.user || mongoose.model('user', userSchema);
-// if it already exists, it will use the existing one 
-// it will create a new model 'user' with the schema 'userSchema'
 
 export default userModel;
-
-// Controller to handle the request and response for the user model
-// This controller will manage the data for the user model

@@ -1,0 +1,105 @@
+JALSAKHI: THE ULTIMATE PROCESS & ARCHITECTURE GUIDE
+================================================
+
+1. SYSTEM ARCHITECTURE & TECH STACK
+-----------------------------------
+- Mobile & Web App: Built with React Native (Expo). Features include multilingual support (i18n), secure storage with AsyncStorage, and custom global state management (AppContext & AuthContext).
+- Azure Backend: Node.js Express server acting as the secure gateway. Handles JWT-based sessions, Email OTPs via Nodemailer, and REST APIs for Farm data.
+- Cloud Database: MongoDB Atlas (MERN-style) using Mongoose for efficient data modeling.
+- AI/ML Engine: Python FastAPI serving multiple ML models.
+    * LLM: Groq (Llama-3.1-8b) for the multilingual chatbot.
+    * Models: Scikit-learn (Random Forest) for Crop Water, TensorFlow/Prophet for Soil Moisture.
+
+2. DETAILED FARMER WORKFLOW
+---------------------------
+- 🟢 ONBOARDING:
+    1. Select "Farmer" Role -> Register with Name, Email, Password, and Phone.
+    2. Account Activation: Enter the 6-digit OTP sent to your email by the Azure server.
+- 🌾 FARM MANAGEMENT:
+    1. Define Farm: Provide Name, Crop type (Sugarcane, Rice, Wheat, Cotton, Maize), and Area in Acres.
+    2. Interactive Mapping: (Internal data) Tracks location-based soil types (Sandy, Clay, Loamy).
+- 💧 IRRIGATION LOGGING:
+    1. Log specific water usage in Liters.
+    2. View History: Track "Last Irrigated" dates and durations to avoid over-watering.
+- 🤖 AI SERVICES (The "Brain"):
+    1. Crop Water Prediction: Input growth stage (Sowing, Flowering, Fruiting), Region (e.g., Central Plateau), and Current Weather (Sunny, Rainy). Output: EXACT water needed in Liters/Acre.
+    2. Soil Moisture Forecast: Uses current sensor data or states/districts to predict moisture levels for the next 7 days.
+    3. Multilingual Chatbot: Switch between English, Hindi, and Marathi. Ask "How much water does my Rice crop need today?" and the AI uses integrated ML tools to Fetch/Calculate live data.
+
+3. DETAILED ADMIN & VILLAGE PLANNER WORKFLOW
+-------------------------------------------
+- 🏢 VILLAGE MANAGEMENT:
+    1. Global Dashboard: High-level view of "Total Village Demand" vs "Total Available Reservoir Water".
+    2. User Management: Approve/Manage registered farmers and assign them to specific village zones.
+- 🌊 RESERVOIR & WATER STATUS:
+    1. Real-time updates on village water storage status.
+    2. Anomaly Detection: Identifies unusual water usage patterns across the village.
+- ⚖️ WATER ALLOCATION (OPTIMIZATION):
+    1. Run Optimization: The Admin triggers the AI Optimisation Model.
+    2. Inputs: Total Reservoir Capacity (Liters) + All Farmer Needs + Priority Scores (1-3).
+    3. Output: A fair distribution plan that ensures "Full" allocation for critical crops and "Partial" for others, maximizing village-wide irrigation efficiency (98%+ Target).
+
+4. TECHNICAL API ENDPOINTS
+-------------------------
+- Base Server (Azure): https://jalsakhi-server-cxd2egdzgyghafd2.centralindia-01.azurewebsites.net
+- Auth: /api/auth (register, login, send-verify-otp, is-auth)
+- User: /api/user/data (Fetch profile & roles)
+- Farms: /api/farms (CRUD operations for farm data)
+- ML Gateway: (Unified Python API) handles /crop-water/predict, /soil-moisture/predict, and /village/optimize.
+
+5. ENHANCED MERMAID PROCESS DIAGRAM
+----------------------------------
+graph TD
+    %% Styling
+    classDef farmer fill:#e6fffa,stroke:#38b2ac,stroke-width:2px;
+    classDef admin fill:#fffaf0,stroke:#ed8936,stroke-width:2px;
+    classDef technical fill:#ebf8ff,stroke:#4299e1,stroke-width:2px;
+
+    %% Launch
+    Start([Launch App]) --> Lang[Select Language: HI/EN/MR]
+    Lang --> Role{Select Role}
+    
+    %% Farmer
+    Role -- Farmer --> F_Auth[[Auth: Signup/Login]]
+    F_Auth --> F_Dash[Farmer Dashboard]
+    F_Dash --> F_Action{User Action}
+    
+    F_Action --> F_Farm[Farm Management]
+    F_Farm --> F_Add[Add Farm: Crop/Area/Soil]
+    
+    F_Action --> F_Logs[Irrigation Logs]
+    F_Logs --> F_LogData[Save usage to DB]
+    
+    F_Action --> F_AI[ML Predictive Tools]
+    F_AI --> F_Water[Predict Water Req]
+    F_AI --> F_Soil[7-Day Soil Moisture]
+    F_AI --> F_Chat[Groq AI Chatbot]
+    
+    %% Admin
+    Role -- Admin --> A_Auth[[Admin Login]]
+    A_Auth --> A_Dash[Admin Dashboard]
+    A_Dash --> A_Action{Planner Action}
+    
+    A_Action --> A_Data[View Village Stats]
+    A_Action --> A_Monitoring[Reservoir Status]
+    
+    A_Action --> A_ML[Water Optimization]
+    A_ML --> A_Opt[Run Heuristic Optimizer]
+    A_Opt --> A_Plan[Generate Fair Allocation Plan]
+    
+    %% Infrastructure
+    subgraph "Secure Cloud Layer (Azure + MongoDB)"
+        Technical_Hub{Backend Hub}
+        F_Add & F_LogData & A_Data & A_Monitoring --> Technical_Hub
+        Technical_Hub <--> DB[(MongoDB Atlas)]
+    end
+    
+    subgraph "AI Intelligence Layer (Python FastAPI)"
+        ML_Hub{Unified ML API}
+        F_Water & F_Soil & A_Opt & F_Chat --> ML_Hub
+        ML_Hub --> Models[RF, Prophet & Llama Models]
+    end
+
+    class F_Auth,F_Dash,F_Action,F_Farm,F_Add,F_Logs,F_LogData,F_AI,F_Water,F_Soil,F_Chat farmer;
+    class A_Auth,A_Dash,A_Action,A_Data,A_Monitoring,A_ML,A_Opt,A_Plan admin;
+    class Technical_Hub,ML_Hub,DB technical;

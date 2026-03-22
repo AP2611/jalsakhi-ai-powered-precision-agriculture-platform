@@ -1,0 +1,4 @@
+{
+  "crop_water_api_url": "http://localhost:8001",
+  "soil_moisture_api_url": "http://localhost:8002"
+}

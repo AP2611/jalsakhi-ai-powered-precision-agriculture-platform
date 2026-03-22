@@ -1,0 +1,44 @@
+// Actors & Initial Step
+Start [shape: oval, label: "Launch App"]
+Lang [shape: oval, label: "Select Language: HI/EN/MR"]
+
+// Role Selection
+Role [shape: diamond, label: "Select Role?"]
+
+// Farmer Path
+F_Auth [shape: rectangle, label: "Auth: Signup/Login (OTP)"]
+F_Dash [shape: rectangle, label: "Farmer Dashboard"]
+F_Action [shape: diamond, label: "User Action?"]
+
+"Farmer Features" {
+  F_Farm [shape: rectangle, label: "Farm Mgmt: Add Crop/Area"]
+  F_Logs [shape: rectangle, label: "Irrigation Logs & History"]
+  F_AI [shape: rectangle, label: "AI Tools (Crop/Soil Predictions)"]
+  F_Chat [shape: rectangle, label: "Multilingual AI Chatbot"]
+}
+
+// Admin Path
+A_Auth [shape: rectangle, label: "Admin Secure Login"]
+A_Dash [shape: rectangle, label: "Admin Dashboard"]
+A_Action [shape: diamond, label: "Planner Action?"]
+
+"Admin Features" {
+  A_Stats [shape: rectangle, label: "Village Demand Analytics"]
+  A_Monitor [shape: rectangle, label: "Reservoir Water Levels"]
+  A_Opt [shape: rectangle, label: "Run AI Water Optimization"]
+}
+
+// Connections
+Start > Lang > Role
+Role > F_Auth: "Farmer"
+F_Auth > F_Dash > F_Action
+F_Action > F_Farm
+F_Action > F_Logs
+F_Action > F_AI
+F_Action > F_Chat
+
+Role > A_Auth: "Admin"
+A_Auth > A_Dash > A_Action
+A_Action > A_Stats
+A_Action > A_Monitor
+A_Action > A_Opt
