@@ -94,43 +94,28 @@ async def fetch_crop_water_mm_per_day(
     region: str,
     temperature: str,
     weather_condition: str,
-) -> float:
-    """Call Crop Water API (Model 1) to get water requirement in mm/day."""
+) -> tuple[float, float]:
+    """
+    Call Crop Water API (Model 1) to get water requirement in mm/day.
+    Returns (mm_per_day, confidence_score).
+    """
     payload = _normalize_crop_water_request(
         crop_type, soil_type, region, temperature, weather_condition
     )
-    async with httpx.AsyncClient(timeout=10.0) as client:
-        r = await client.post(
-            f"{base_url.rstrip('/')}/predict",
-            json=payload,
-        )
-        if r.status_code != 200:
-            err_detail = "unknown error"
-            try:
-                body = r.json()
-                d = body.get("detail")
-                if isinstance(d, str):
-                    err_detail = d
-                elif isinstance(d, list):
-                    parts = []
-                    for x in d:
-                        if isinstance(x, dict):
-                            loc = x.get("loc", [])
-                            msg = x.get("msg", str(x))
-                            parts.append(f"{'.'.join(str(l) for l in loc)}: {msg}")
-                        else:
-                            parts.append(str(x))
-                    err_detail = "; ".join(parts)
-            except Exception:
-                err_detail = r.text or str(r.status_code)
-            msg = f"Crop Water API {r.status_code}: {err_detail}"
-            if r.status_code == 422 and (
-                "sensor" in err_detail.lower() or "sm_history" in err_detail
-            ):
-                msg += " (Is the Crop Water API on this port? Port 8001 must run Crop_Water_Model, not Soil Moisture.)"
-            raise ValueError(msg)
-        data = r.json()
-        return float(data["water_requirement"])
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            r = await client.post(
+                f"{base_url.rstrip('/')}/predict",
+                json=payload,
+            )
+            if r.status_code != 200:
+                logger.warning("Crop Water API returned status %d", r.status_code)
+                return 5.0, 0.4  # Default fallback with low confidence
+            data = r.json()
+            return float(data["water_requirement"]), 0.9
+    except Exception as e:
+        logger.warning("Failed to fetch from Crop Water API: %s", e)
+        return 5.0, 0.2  # Error fallback with very low confidence
 
 
 class FarmInput(BaseModel):
@@ -149,6 +134,7 @@ class FarmInput(BaseModel):
     predicted_soil_moisture_pct: float | None = Field(
         None, description="Soil moisture % from Model 2 or default 30"
     )
+    min_survival_pct: float = Field(30.0, ge=0, le=100, description="Minimum survival water as % of demand")
 
 
 class OptimizeRequest(BaseModel):
@@ -160,6 +146,8 @@ class AllocationItem(BaseModel):
     farm_id: str
     allocated_liters: float
     share_percent: float
+    confidence_score: float
+    is_survival_only: bool
 
 
 class PerFarmReportItem(BaseModel):
@@ -198,9 +186,9 @@ def _demand_liters(area_ha: float, mm_per_day: float, soil_moisture_pct: float |
 
 
 app = FastAPI(
-    title="Village Water Allocation API",
-    description="Optimize distribution of limited village reservoir water across farms.",
-    version="1.0",
+    title="Village Water Allocation API (Optimized)",
+    description="Multi-objective optimization for fair village-level water distribution.",
+    version="2.0",
 )
 
 app.add_middleware(
@@ -237,81 +225,133 @@ def health() -> dict[str, Any]:
 
 @app.post("/optimize", response_model=OptimizeResponse)
 async def optimize(req: OptimizeRequest) -> OptimizeResponse:
-    """Compute fair water allocation per farm and village efficiency score."""
+    """Multi-stage water allocation: Survival phase followed by Growth/Efficiency phase."""
     crop_water_url = config.get("crop_water_api_url", "http://localhost:8001")
     total_available = req.total_available_water_liters
     farms = req.farms
 
-    demands: list[tuple[str, float, float]] = []  # (farm_id, demand_liters, priority_weight)
+    farm_data: list[dict[str, Any]] = []
+    total_demand = 0.0
 
     for farm in farms:
         area_ha = _area_ha(farm)
+        confidence = 1.0
+        
         mm_per_day = farm.crop_water_requirement_mm_per_day
         if mm_per_day is None:
-            try:
-                mm_per_day = await fetch_crop_water_mm_per_day(
-                    crop_water_url,
-                    farm.crop_type,
-                    farm.soil_type,
-                    farm.region,
-                    farm.temperature,
-                    farm.weather_condition,
-                )
-            except Exception as e:
-                logger.exception("Crop Water API call failed for farm %s", farm.farm_id)
-                raise HTTPException(
-                    status_code=502,
-                    detail=f"Crop Water API failed for farm {farm.farm_id}: {e!s}",
-                ) from e
-        moisture = farm.predicted_soil_moisture_pct if farm.predicted_soil_moisture_pct is not None else 30.0
+            mm_per_day, api_conf = await fetch_crop_water_mm_per_day(
+                crop_water_url,
+                farm.crop_type,
+                farm.soil_type,
+                farm.region,
+                farm.temperature,
+                farm.weather_condition,
+            )
+            confidence *= api_conf
+        
+        # Soil moisture adjustment
+        moisture = farm.predicted_soil_moisture_pct
+        if moisture is None:
+            moisture = 30.0
+            confidence *= 0.8
+        
         demand_liters = _demand_liters(area_ha, mm_per_day, moisture)
         weight = priority_weight(farm.priority_score)
-        demands.append((farm.farm_id, demand_liters, weight))
+        
+        survival_liters = (farm.min_survival_pct / 100.0) * demand_liters
+        total_demand += demand_liters
+        
+        farm_data.append({
+            "farm_id": farm.farm_id,
+            "demand": demand_liters,
+            "survival_need": survival_liters,
+            "weight": weight,
+            "confidence": round(confidence, 2)
+        })
 
-    total_demand = sum(d for _, d, _ in demands)
-    needs = [(fid, d * w, d) for fid, d, w in demands]
-    sum_needs = sum(n[1] for n in needs)
-    if sum_needs <= 0:
-        raise HTTPException(status_code=422, detail="Total need is zero")
+    # Phase 1: Survival water allocation
+    total_survival_needed = sum(f["survival_need"] for f in farm_data)
+    allocations_raw: dict[str, float] = {}
+    
+    survival_multiplier = 1.0
+    if total_available < total_survival_needed:
+        # Extreme scarcity: scale down survival water proportionally
+        survival_multiplier = total_available / total_survival_needed
+    
+    water_left = total_available
+    for f in farm_data:
+        alloc = f["survival_need"] * survival_multiplier
+        allocations_raw[f["farm_id"]] = alloc
+        water_left -= alloc
+    
+    water_left = max(0, water_left)
 
-    to_allocate = min(total_available, total_demand)
-    allocations_raw: list[tuple[str, float, float]] = []  # (farm_id, alloc, demand)
-    for farm_id, need, demand in needs:
-        alloc = (need / sum_needs) * to_allocate
-        alloc = min(alloc, demand)
-        allocations_raw.append((farm_id, alloc, demand))
+    # Phase 2: Growth water (remaining water after survival)
+    gaps = {f["farm_id"]: max(0, f["demand"] - allocations_raw[f["farm_id"]]) for f in farm_data}
+    remaining_demand = sum(gaps.values())
+    
+    if water_left > 0 and remaining_demand > 0:
+        if water_left >= remaining_demand:
+            # Full satisfaction possible
+            for fid in allocations_raw:
+                allocations_raw[fid] += gaps[fid]
+        else:
+            # Weighted distribution for limited growth water
+            growth_potential = sum(f["weight"] * gaps[f["farm_id"]] for f in farm_data)
+            to_distribute = water_left
+            for f in farm_data:
+                fid = f["farm_id"]
+                if gaps[fid] > 0:
+                    bonus = (f["weight"] * gaps[fid] / growth_potential) * to_distribute
+                    allocations_raw[fid] += min(bonus, gaps[fid])
 
-    total_allocated = sum(a[1] for a in allocations_raw)
-    # Efficiency: fraction of available water that was allocated (usage of reservoir)
-    village_efficiency_score = (total_allocated / total_available * 100) if total_available > 0 else 0.0
+    total_allocated = sum(allocations_raw.values())
+    village_efficiency = (total_allocated / total_available * 100) if total_available > 0 else 0.0
 
-    allocations_out = [
-        AllocationItem(
-            farm_id=farm_id,
+    allocations_out = []
+    per_farm_report = []
+    
+    for f in farm_data:
+        fid = f["farm_id"]
+        alloc = allocations_raw[fid]
+        demand = f["demand"]
+        
+        allocations_out.append(AllocationItem(
+            farm_id=fid,
             allocated_liters=round(alloc, 2),
             share_percent=round((alloc / total_allocated * 100) if total_allocated > 0 else 0, 2),
-        )
-        for farm_id, alloc, _ in allocations_raw
-    ]
-    per_farm_report = [
-        PerFarmReportItem(
-            farm_id=farm_id,
+            confidence_score=f["confidence"],
+            is_survival_only=alloc <= f["survival_need"] and alloc < demand
+        ))
+        
+        status = "met"
+        if alloc < f["survival_need"]: status = "critical_deficit"
+        elif alloc < demand: status = "growth_deficit"
+        
+        per_farm_report.append(PerFarmReportItem(
+            farm_id=fid,
             allocated_liters=round(alloc, 2),
             demand_liters=round(demand, 2),
             deficit_liters=round(max(0, demand - alloc), 2),
             excess_liters=round(max(0, alloc - demand), 2),
-            status="deficit" if alloc < demand else "met",
-        )
-        for farm_id, alloc, demand in allocations_raw
-    ]
+            status=status
+        ))
 
     return OptimizeResponse(
         allocations=allocations_out,
         per_farm_report=per_farm_report,
-        village_efficiency_score=round(village_efficiency_score, 2),
+        village_efficiency_score=round(village_efficiency, 2),
         total_demand_liters=round(total_demand, 2),
         total_allocated_liters=round(total_allocated, 2),
     )
+
+
+@app.post("/feedback")
+async def feedback(data: dict[str, Any]) -> dict[str, str]:
+    """Record actual water usage for model tuning."""
+    logger.info("Received usage feedback: %s", data)
+    # In a real system, this would write to a DB or log for retraining
+    return {"status": "recorded"}
 
 
 if __name__ == "__main__":
