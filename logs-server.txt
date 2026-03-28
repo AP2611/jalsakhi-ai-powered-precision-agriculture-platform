@@ -3,5 +3,5 @@
 > node server.js
 
 Attempting to connect to MongoDB at Cloud...
-Server is running on port: 3000
+Server is running on port: 3001
 MongoDB connected successfully

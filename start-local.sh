@@ -24,12 +24,22 @@ if [ -z "$LOCAL_IP" ]; then
 fi
 echo -e "Detected IP: ${GREEN}$LOCAL_IP${NC}"
 
-# 2. Update App Environment with current IP
-echo -e "${YELLOW}Step 2: Syncing App configuration...${NC}"
+# 2. Proactive Port Cleanup
+echo -e "${YELLOW}Step 2: Clearing stale processes...${NC}"
+for port in 3001 5005 8008 8081; do
+    pid=$(lsof -t -i:$port)
+    if [ ! -z "$pid" ]; then
+        echo -e "Killing process on port $port (PID: $pid)"
+        kill -9 $pid 2>/dev/null
+    fi
+done
+
+# 3. Update App Environment with current IP
+echo -e "${YELLOW}Step 3: Syncing App configuration...${NC}"
 if [ -f "app/.env" ]; then
     # Create a fresh app/.env with the detected IP for consistency
-    sed -i '' "s|EXPO_PUBLIC_API_URL=.*|EXPO_PUBLIC_API_URL=http://$LOCAL_IP:3000|g" app/.env
-    echo -e "Updated app/.env to point to http://$LOCAL_IP:3000"
+    sed -i '' "s|EXPO_PUBLIC_API_URL=.*|EXPO_PUBLIC_API_URL=http://$LOCAL_IP:3001|g" app/.env
+    echo -e "Updated app/.env to point to http://$LOCAL_IP:3001"
 else
     echo -e "${RED}Warning: app/.env not found. Please ensure it exists.${NC}"
 fi
@@ -44,24 +54,24 @@ cleanup() {
 trap cleanup SIGINT SIGTERM
 
 # 4. Start Services
-echo -e "${YELLOW}Step 3: Launching Services...${NC}"
+echo -e "${YELLOW}Step 4: Launching Services...${NC}"
 
 # A. Unified ML API (Python FastAPI)
-echo -e "Starting ${BLUE}Unified ML API${NC} [Port 8000]..."
+echo -e "Starting ${BLUE}Unified ML API${NC} [Port 8008]..."
 cd ml-services/models
-python3 unified_api/main.py > ../../logs-ml.txt 2>&1 &
+PORT=8008 python3 unified_api/main.py > ../../logs-ml.txt 2>&1 &
 ML_PID=$!
 cd ../..
 
 # B. ML Gateway (Node.js)
-echo -e "Starting ${BLUE}ML Gateway${NC} [Port 5000]..."
+echo -e "Starting ${BLUE}ML Gateway${NC} [Port 5005]..."
 cd ml-services/gateway
 npm start > ../../logs-gateway.txt 2>&1 &
 GATEWAY_PID=$!
 cd ../..
 
 # C. Main Backend Server (Node.js)
-echo -e "Starting ${BLUE}Main Server${NC} [Port 3000]..."
+echo -e "Starting ${BLUE}Main Server${NC} [Port 3001]..."
 cd server
 npm start > ../logs-server.txt 2>&1 &
 SERVER_PID=$!
@@ -77,9 +87,9 @@ cd ..
 echo -e "${GREEN}==================================================${NC}"
 echo -e "${GREEN}   All services are running!                      ${NC}"
 echo -e "   - Main App: http://localhost:8081              ${NC}"
-echo -e "   - Local Server: http://$LOCAL_IP:3000          ${NC}"
-echo -e "   - Local Gateway: http://localhost:5000         ${NC}"
-echo -e "   - Unified ML: http://localhost:8000            ${NC}"
+echo -e "   - Local Server: http://$LOCAL_IP:3001          ${NC}"
+echo -e "   - Local Gateway: http://localhost:5005         ${NC}"
+echo -e "   - Unified ML: http://localhost:8008            ${NC}"
 echo -e "   Press Ctrl+C to stop all services.             ${NC}"
 echo -e "   Check logs-*.txt for details if something fails.${NC}"
 echo -e "${GREEN}==================================================${NC}"

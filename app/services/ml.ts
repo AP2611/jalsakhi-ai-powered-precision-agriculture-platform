@@ -34,12 +34,15 @@ export const MLService = {
      */
     predictWaterRequirement: async (input: CropPredictionInput): Promise<any> => {
         Logger.info('MLService', `Predicting water for ${input.crop_type}`);
+        console.log('[App] Requesting Crop Water Prediction with input:', JSON.stringify(input));
 
         try {
             const response = await api.post('/api/ai/crop-water', input);
+            console.log('[App] Received Crop Water Prediction SUCCESS:', JSON.stringify(response.data));
             // Return the full data object from the AI response
             return response.data?.data || null;
         } catch (error: any) {
+            console.error('[App] Crop Water prediction ERROR:', error.message);
             Logger.error('MLService', 'Crop water prediction failed', error);
             throw error;
         }
@@ -50,6 +53,7 @@ export const MLService = {
      */
     forecastSoilMoisture: async (input: SoilMoistureInput): Promise<any> => {
         Logger.info('MLService', `Forecasting soil moisture`);
+        console.log('[App] Requesting Soil Moisture Forecast with input:', JSON.stringify(input));
 
         try {
             let payload: any = input;
@@ -64,8 +68,10 @@ export const MLService = {
             }
 
             const response = await api.post('/api/ai/soil-moisture', payload);
+            console.log('[App] Received Soil Moisture Forecast SUCCESS:', JSON.stringify(response.data));
             return response.data?.data || null;
         } catch (error: any) {
+            console.error('[App] Soil Moisture forecast ERROR:', error.message);
             Logger.error('MLService', 'Soil moisture forecast failed', error);
             throw error;
         }
@@ -76,6 +82,7 @@ export const MLService = {
      */
     optimizeAllocation: async (availableWater: number, farms: any[]): Promise<any> => {
         Logger.info('MLService', `Optimizing allocation for ${farms.length} farms`);
+        console.log('[App] Requesting Village Water Optimization');
         try {
             const payload = {
                 total_available_water_liters: availableWater,
@@ -91,8 +98,10 @@ export const MLService = {
                 }))
             };
             const response = await api.post('/api/ai/village-water', payload);
+            console.log('[App] Received Optimization SUCCESS:', JSON.stringify(response.data));
             return response.data?.data || null;
         } catch (error: any) {
+            console.error('[App] Optimization ERROR:', error.message);
             Logger.error('MLService', 'Allocation optimization failed', error);
             throw error;
         }

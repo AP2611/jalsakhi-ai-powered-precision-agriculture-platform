@@ -59,6 +59,7 @@ const mlHttpClient = axios.create({
  * Generic proxy function with error handling
  */
 const proxyRequest = async (res, endpoint, data, apiKeyHeader = 'x-internal-key') => {
+    console.log(`[Main Server] Proxying request to gateway (Endpoint: ${endpoint})`);
     try {
         const config = {};
         if (process.env.ML_API_KEY) {
@@ -66,9 +67,13 @@ const proxyRequest = async (res, endpoint, data, apiKeyHeader = 'x-internal-key'
         }
 
         const response = await mlHttpClient.post(endpoint, data, config);
+        console.log(`[Main Server] Received SUCCESS from Gateway for ${endpoint}`);
         return res.json({ success: true, data: response.data });
     } catch (error) {
-        console.error(`AI Proxy Error [${endpoint}]:`, error.message);
+        console.error(`[Main Server] AI Proxy Error [${endpoint}]:`, error.message);
+        if (error.response) {
+            console.error(`[Main Server] Gateway Response Error: ${JSON.stringify(error.response.data)}`);
+        }
 
         let status = 502; // Bad Gateway by default
         let message = 'AI Service is temporarily unavailable. Please try again later.';

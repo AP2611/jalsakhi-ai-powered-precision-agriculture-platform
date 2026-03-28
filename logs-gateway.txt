@@ -2,37 +2,12 @@
 > local-model-gateway@1.0.0 start
 > node server.js
 
-[HPM] Proxy created: /  -> http://localhost:8000/crop-water
+[HPM] Proxy created: /  -> http://localhost:8008/crop-water
 [HPM] Proxy rewrite rule created: "^/crop-water" ~> ""
-[HPM] Proxy created: /  -> http://localhost:8000/soil-moisture
+[HPM] Proxy created: /  -> http://localhost:8008/soil-moisture
 [HPM] Proxy rewrite rule created: "^/soil-moisture" ~> ""
-[HPM] Proxy created: /  -> http://localhost:8000/village
+[HPM] Proxy created: /  -> http://localhost:8008/village
 [HPM] Proxy rewrite rule created: "^/village-water" ~> ""
-[HPM] Proxy created: /  -> http://localhost:8000/chatbot
+[HPM] Proxy created: /  -> http://localhost:8008/chatbot
 [HPM] Proxy rewrite rule created: "^/chatbot" ~> ""
-node:events:502
-      throw er; // Unhandled 'error' event
-      ^
-
-Error: listen EADDRINUSE: address already in use :::5000
-    at Server.setupListenHandle [as _listen2] (node:net:1908:16)
-    at listenInCluster (node:net:1965:12)
-    at Server.listen (node:net:2067:7)
-    at Function.listen (/Users/arjunpanse/jalsakhi-ai-powered-precision-agriculture-platform/ml-services/gateway/node_modules/express/lib/application.js:635:24)
-    at Object.<anonymous> (/Users/arjunpanse/jalsakhi-ai-powered-precision-agriculture-platform/ml-services/gateway/server.js:202:20)
-    at Module._compile (node:internal/modules/cjs/loader:1521:14)
-    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
-    at Module.load (node:internal/modules/cjs/loader:1266:32)
-    at Module._load (node:internal/modules/cjs/loader:1091:12)
-    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:164:12)
-Emitted 'error' event on Server instance at:
-    at emitErrorNT (node:net:1944:8)
-    at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
-  code: 'EADDRINUSE',
-  errno: -48,
-  syscall: 'listen',
-  address: '::',
-  port: 5000
-}
-
-Node.js v20.19.5
+{"timestamp":"2026-03-28T07:17:20.158Z","level":"info","message":"Server listening","port":5005}

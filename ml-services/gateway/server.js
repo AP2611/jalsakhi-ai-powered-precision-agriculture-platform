@@ -29,12 +29,15 @@ function log(level, message, meta = {}) {
 }
 
 function requireInternalKey(req, res, next) {
+  console.log(`[Gateway] incoming request: ${req.method} ${req.path}`);
   const key = req.get('x-internal-key');
   if (!INTERNAL_API_KEY) {
+    console.error('[Gateway] ERROR: INTERNAL_API_KEY not set');
     log('error', 'INTERNAL_API_KEY not set');
     return res.status(503).json({ error: 'Server misconfiguration' });
   }
   if (!key || key !== INTERNAL_API_KEY) {
+    console.warn(`[Gateway] WARN: Rejected request (invalid key) for ${req.path}`);
     log('warn', 'Rejected request: missing or invalid x-internal-key', { path: req.path });
     return res.status(403).json({ error: 'Forbidden' });
   }
@@ -79,7 +82,11 @@ app.use(
     changeOrigin: true,
     pathRewrite: { '^/crop-water': '' },
     on: {
+      proxyReq: (proxyReq, req, res) => {
+        console.log(`[Gateway] Proxying Crop-Water request to: ${CROP_WATER_API_URL}${req.url}`);
+      },
       error: (err, req, res) => {
+        console.error(`[Gateway] Crop-Water Proxy Error: ${err.message}`);
         log('error', 'Crop Water proxy error', { error: err.message });
         res.status(502).json({ error: 'Crop Water API unavailable' });
       },
@@ -93,7 +100,11 @@ app.use(
     changeOrigin: true,
     pathRewrite: { '^/soil-moisture': '' },
     on: {
+      proxyReq: (proxyReq, req, res) => {
+        console.log(`[Gateway] Proxying Soil-Moisture request to: ${SOIL_MOISTURE_API_URL}${req.url}`);
+      },
       error: (err, req, res) => {
+        console.error(`[Gateway] Soil-Moisture Proxy Error: ${err.message}`);
         log('error', 'Soil Moisture proxy error', { error: err.message });
         res.status(502).json({ error: 'Soil Moisture API unavailable' });
       },
@@ -107,7 +118,11 @@ app.use(
     changeOrigin: true,
     pathRewrite: { '^/village-water': '' },
     on: {
+      proxyReq: (proxyReq, req, res) => {
+        console.log(`[Gateway] Proxying Village-Water request to: ${VILLAGE_WATER_API_URL}${req.url}`);
+      },
       error: (err, req, res) => {
+        console.error(`[Gateway] Village-Water Proxy Error: ${err.message}`);
         log('error', 'Village Water proxy error', { error: err.message });
         res.status(502).json({ error: 'Village Water API unavailable' });
       },
@@ -121,7 +136,11 @@ app.use(
     changeOrigin: true,
     pathRewrite: { '^/chatbot': '' },
     on: {
+      proxyReq: (proxyReq, req, res) => {
+        console.log(`[Gateway] Proxying Chatbot request to: ${CHATBOT_API_URL}${req.url}`);
+      },
       error: (err, req, res) => {
+        console.error(`[Gateway] Chatbot Proxy Error: ${err.message}`);
         log('error', 'Chatbot proxy error', { error: err.message });
         res.status(502).json({ error: 'Chatbot API unavailable' });
       },
