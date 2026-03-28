@@ -44,13 +44,6 @@ export default function FarmerLayout() {
                             />
 
                             <TabItem
-                                icon="robot-outline"
-                                label="FarmAI"
-                                active={pathname.includes('/chatbot')}
-                                onPress={() => router.push('/farmer/chatbot')}
-                            />
-
-                            <TabItem
                                 icon={pathname.includes('/notifications') ? "bell" : "bell-outline"}
                                 label="Alerts"
                                 active={pathname.includes('/notifications')}

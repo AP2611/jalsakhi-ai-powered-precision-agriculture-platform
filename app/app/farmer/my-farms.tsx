@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
-import { StyleSheet, View, Text, FlatList, TouchableOpacity, Image, Alert, StatusBar, Dimensions } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { StyleSheet, View, Text, FlatList, Pressable, Image, Alert, StatusBar, Dimensions } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { Theme } from '../../constants/JalSakhiTheme';
 import { Farm } from '../../services/farms';
@@ -10,6 +9,7 @@ import { Feather, MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
+import { ScreenWrapper } from '../../components/shared/ScreenWrapper';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -36,9 +36,8 @@ export default function MyFarmsScreen() {
 
     const renderFarmItem = ({ item }: { item: Farm }) => (
         <View style={styles.farmCard}>
-            <TouchableOpacity
-                activeOpacity={0.9}
-                style={{ flex: 1 }}
+            <Pressable
+                style={({ pressed }) => [{ flex: 1, opacity: pressed ? 0.95 : 1 }]}
                 onPress={() => router.push({ pathname: '/farmer/my-farm-detail', params: { id: item.id } } as any)}
             >
                 <Image
@@ -48,7 +47,7 @@ export default function MyFarmsScreen() {
 
                 <BlurView intensity={20} tint="dark" style={styles.imageOverlay}>
                     <View style={styles.overlayContent}>
-                        <View style={[styles.statusBadge, { backgroundColor: item.status === 'Optimal' ? '#10b981' : '#ef4444' }]}>
+                        <View style={[styles.statusBadge, { backgroundColor: item.status === 'Optimal' ? Theme.colors.success : Theme.colors.error }]}>
                             <Text style={styles.statusText}>
                                 {item.status ? t(`farms.${item.status.toLowerCase()}`, { defaultValue: item.status }) : t('farms.unknown')}
                             </Text>
@@ -69,100 +68,77 @@ export default function MyFarmsScreen() {
                         </View>
                     </View>
                 </View>
-            </TouchableOpacity>
+            </Pressable>
 
             {/* Float Actions */}
             <View style={styles.cardActions}>
-                <TouchableOpacity
-                    style={styles.cardActionBtn}
+                <Pressable
+                    style={({ pressed }) => [styles.cardActionBtn, { opacity: pressed ? 0.7 : 1 }]}
                     onPress={() => router.push({ pathname: '/farmer/my-farms-add-edit', params: { id: item.id } } as any)}
                 >
                     <BlurView intensity={80} tint="light" style={styles.actionBlur}>
                         <MaterialCommunityIcons name="pencil-outline" size={18} color={Theme.colors.text} />
                     </BlurView>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={styles.cardActionBtn}
+                </Pressable>
+                <Pressable
+                    style={({ pressed }) => [styles.cardActionBtn, { opacity: pressed ? 0.7 : 1 }]}
                     onPress={() => handleDelete(item.id)}
                 >
                     <BlurView intensity={80} tint="light" style={styles.actionBlur}>
-                        <MaterialCommunityIcons name="trash-can-outline" size={18} color="#ef4444" />
+                        <MaterialCommunityIcons name="trash-can-outline" size={18} color={Theme.colors.error} />
                     </BlurView>
-                </TouchableOpacity>
+                </Pressable>
             </View>
         </View>
     );
 
     return (
-        <View style={styles.container}>
-            <StatusBar barStyle="dark-content" />
+        <ScreenWrapper contentContainerStyle={{ paddingBottom: 100 }}>
             <Stack.Screen options={{ headerShown: false }} />
 
-            {/* Decorative BG */}
-            <View style={styles.decorativeLayer} pointerEvents="none">
-                <View style={[styles.designLine, { top: '30%', right: -80, transform: [{ rotate: '-30deg' }] }]} />
-                <View style={[styles.designLine, { bottom: '20%', left: -40, width: 200, transform: [{ rotate: '45deg' }] }]} />
+            <View style={styles.header}>
+                <View style={styles.headerTitles}>
+                    <Text style={styles.headerTitle}>{t('farms.myFarms')}</Text>
+                    <Text style={styles.headerSubtitle}>Manage your agricultural assets</Text>
+                </View>
+                <Pressable
+                    style={({ pressed }) => [styles.addBtn, { opacity: pressed ? 0.8 : 1 }]}
+                    onPress={() => router.push('/farmer/my-farms-add-edit')}
+                >
+                    <LinearGradient colors={['#10b981', '#059669']} style={styles.addGradient}>
+                        <MaterialCommunityIcons name="plus" size={28} color="white" />
+                    </LinearGradient>
+                </Pressable>
             </View>
 
-            <SafeAreaView style={{ flex: 1 }}>
-                <View style={styles.header}>
-                    <View style={styles.headerTitles}>
-                        <Text style={styles.headerTitle}>{t('farms.myFarms')}</Text>
-                        <Text style={styles.headerSubtitle}>Manage your agricultural assets</Text>
+            <FlatList
+                data={farms}
+                keyExtractor={(item) => item.id}
+                scrollEnabled={false} // Managed by ScreenWrapper ScrollView
+                contentContainerStyle={styles.list}
+                renderItem={renderFarmItem}
+                ListEmptyComponent={
+                    <View style={styles.emptyContainer}>
+                        <BlurView intensity={20} tint="light" style={styles.emptyBlur}>
+                            <MaterialCommunityIcons name="sprout-outline" size={64} color={Theme.colors.primary} />
+                            <Text style={styles.emptyText}>
+                                {farmsLoading ? t('farms.loadingFarms') : t('farms.noFarms')}
+                            </Text>
+                            <Pressable
+                                style={({ pressed }) => [styles.emptyAddBtn, { opacity: pressed ? 0.8 : 1 }]}
+                                onPress={() => router.push('/farmer/my-farms-add-edit')}
+                            >
+                                <Text style={styles.emptyAddText}>Register First Farm</Text>
+                            </Pressable>
+                        </BlurView>
                     </View>
-                    <TouchableOpacity
-                        style={styles.addBtn}
-                        onPress={() => router.push('/farmer/my-farms-add-edit')}
-                    >
-                        <LinearGradient colors={['#10b981', '#059669']} style={styles.addGradient}>
-                            <MaterialCommunityIcons name="plus" size={28} color="white" />
-                        </LinearGradient>
-                    </TouchableOpacity>
-                </View>
-
-                <FlatList
-                    data={farms}
-                    keyExtractor={(item) => item.id}
-                    contentContainerStyle={styles.list}
-                    renderItem={renderFarmItem}
-                    showsVerticalScrollIndicator={false}
-                    ListEmptyComponent={
-                        <View style={styles.emptyContainer}>
-                            <BlurView intensity={20} tint="light" style={styles.emptyBlur}>
-                                <MaterialCommunityIcons name="sprout-outline" size={64} color={Theme.colors.primary} />
-                                <Text style={styles.emptyText}>
-                                    {farmsLoading ? t('farms.loadingFarms') : t('farms.noFarms')}
-                                </Text>
-                                <TouchableOpacity
-                                    style={styles.emptyAddBtn}
-                                    onPress={() => router.push('/farmer/my-farms-add-edit')}
-                                >
-                                    <Text style={styles.emptyAddText}>Register First Farm</Text>
-                                </TouchableOpacity>
-                            </BlurView>
-                        </View>
-                    }
-                />
-            </SafeAreaView>
-        </View>
+                }
+            />
+        </ScreenWrapper>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#F8FAFC',
-    },
-    decorativeLayer: {
-        ...StyleSheet.absoluteFillObject,
-        overflow: 'hidden',
-    },
-    designLine: {
-        position: 'absolute',
-        width: 350,
-        height: 1,
-        backgroundColor: 'rgba(16, 185, 129, 0.1)',
-    },
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -203,15 +179,16 @@ const styles = StyleSheet.create({
     },
     list: {
         paddingHorizontal: 20,
-        paddingBottom: 100,
+        paddingBottom: 20,
         gap: 20,
     },
     farmCard: {
-        backgroundColor: 'white',
-        borderRadius: 28,
+        backgroundColor: 'rgba(255, 255, 255, 0.6)',
+        borderRadius: 24,
         overflow: 'hidden',
-        borderWidth: 1.5,
-        borderColor: '#E2E8F0',
+        borderWidth: 1,
+        borderColor: 'rgba(6, 78, 59, 0.08)',
+        ...Theme.shadows.soft,
     },
     farmImage: {
         width: '100%',

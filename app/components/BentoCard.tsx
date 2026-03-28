@@ -26,21 +26,18 @@ export const BentoCard: React.FC<BentoCardProps> = ({ title, children, colSpan =
 
 const styles = StyleSheet.create({
     card: {
-        backgroundColor: '#FFFFFF',
-        borderRadius: 16,
-        padding: 16,
-        marginBottom: 12,
-        shadowColor: Theme.colors.primary,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 8,
-        elevation: 3,
-        flex: 1, // Allow flex grow
-        marginHorizontal: 6, // Gutter
+        backgroundColor: 'rgba(255, 255, 255, 0.6)',
+        borderRadius: 24,
+        padding: 20,
+        marginBottom: 16,
+        borderWidth: 1,
+        borderColor: 'rgba(6, 78, 59, 0.08)',
+        ...Theme.shadows.soft,
+        flex: 1,
+        marginHorizontal: 0,
     },
     fullWidth: {
         width: '100%',
-        marginHorizontal: 0,
     },
     title: {
         fontSize: 12,

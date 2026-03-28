@@ -1,27 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  TextInput,
-  TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
-  SafeAreaView,
-  ActivityIndicator,
-  Image,
-  StatusBar,
-  Dimensions,
-  ScrollView,
-  Keyboard,
-  TouchableWithoutFeedback
-} from 'react-native';
+import { View, Text, StyleSheet, FlatList, TextInput, Pressable, KeyboardAvoidingView, Platform, ActivityIndicator, Image, StatusBar, Dimensions, ScrollView, Keyboard, TouchableWithoutFeedback } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { Theme } from '../../constants/JalSakhiTheme';
 import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
+import { ScreenWrapper } from '../../components/shared/ScreenWrapper';
 
 import api from '../../utils/api';
 import { Logger } from '../../utils/Logger';
@@ -107,107 +91,106 @@ export default function ChatbotScreen() {
     );
   };
 
-  return (
-    <View style={styles.safe}>
-      <StatusBar barStyle="dark-content" />
-      <Stack.Screen options={{ headerShown: false }} />
+    return (
+        <ScreenWrapper scrollable={false} style={{ backgroundColor: 'transparent' }}>
+            <Stack.Screen options={{ headerShown: false }} />
 
-      {/* Decorative Layer */}
-      <View style={styles.decorativeLayer} pointerEvents="none">
-        <View style={[styles.designLine, { top: '30%', right: -60, transform: [{ rotate: '-30deg' }] }]} />
-        <View style={[styles.designLine, { bottom: '20%', left: -80, width: 300, transform: [{ rotate: '15deg' }] }]} />
-      </View>
-
-      <SafeAreaView style={{ flex: 1 }}>
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-            <BlurView intensity={60} tint="light" style={styles.backBlur}>
-              <MaterialCommunityIcons name="chevron-left" size={28} color={Theme.colors.text} />
-            </BlurView>
-          </TouchableOpacity>
-          <View style={styles.headerTextContainer}>
-            <Text style={styles.title}>JalSakhi AI</Text>
-            <View style={styles.onlineStatus}>
-              <View style={styles.statusDot} />
-              <Text style={styles.statusTextLine}>Online</Text>
-            </View>
-          </View>
-          <TouchableOpacity style={styles.infoBtn}>
-            <MaterialCommunityIcons name="information-outline" size={22} color={Theme.colors.textMuted} />
-          </TouchableOpacity>
-        </View>
-
-        <KeyboardAvoidingView
-          style={styles.container}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
-        >
-          {/* Language Selector */}
-          <View style={styles.langArea}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.langList}>
-              {['English', 'Hindi', 'Marathi', 'Gujarati', 'Tamil'].map(l => (
-                <TouchableOpacity
-                  key={l}
-                  style={[styles.langChip, language === l && styles.activeLang]}
-                  onPress={() => setLanguage(l)}
+            <View style={styles.header}>
+                <Pressable
+                    style={({ pressed }) => [styles.backBtn, { opacity: pressed ? 0.7 : 1 }]}
+                    onPress={() => router.back()}
                 >
-                  <Text style={[styles.langText, language === l && styles.activeLangText]}>{l}</Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-
-          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <View style={{ flex: 1 }}>
-              <FlatList
-                ref={listRef}
-                data={messages}
-                keyExtractor={(i) => i.id}
-                renderItem={renderMessage}
-                contentContainerStyle={styles.list}
-                showsVerticalScrollIndicator={false}
-                keyboardDismissMode="on-drag"
-              />
-
-              {isTyping && (
-                <View style={styles.typingRow}>
-                  <BlurView intensity={30} tint="light" style={styles.typingBubble}>
-                    <View style={styles.dot} />
-                    <View style={[styles.dot, { opacity: 0.5 }]} />
-                    <View style={[styles.dot, { opacity: 0.2 }]} />
-                  </BlurView>
+                    <BlurView intensity={60} tint="light" style={styles.backBlur}>
+                        <MaterialCommunityIcons name="chevron-left" size={28} color={Theme.colors.forest} />
+                    </BlurView>
+                </Pressable>
+                <View style={styles.headerTextContainer}>
+                    <Text style={styles.title}>JalSakhi AI</Text>
+                    <View style={styles.onlineStatus}>
+                        <View style={styles.statusDot} />
+                        <Text style={styles.statusTextLine}>Online</Text>
+                    </View>
                 </View>
-              )}
+                <Pressable style={({ pressed }) => [styles.infoBtn, { opacity: pressed ? 0.6 : 1 }]}>
+                    <MaterialCommunityIcons name="information-outline" size={24} color={Theme.colors.forest} />
+                </Pressable>
             </View>
-          </TouchableWithoutFeedback>
 
-          <BlurView intensity={80} tint="light" style={styles.inputArea}>
-            <View style={styles.inputWrapper}>
-              <TextInput
-                placeholder="Ask your question..."
-                placeholderTextColor="#94a3b8"
-                value={input}
-                onChangeText={setInput}
-                style={[styles.input, { maxHeight: 100 }]}
-                multiline
-              />
-              <TouchableOpacity
-                onPress={sendMessage}
-                disabled={!input.trim()}
-              >
-                <LinearGradient
-                  colors={input.trim() ? ['#10b981', '#059669'] : ['#e2e8f0', '#cbd5e1']}
-                  style={styles.sendBtn}
-                >
-                  <Ionicons name="send" size={18} color="white" />
-                </LinearGradient>
-              </TouchableOpacity>
-            </View>
-          </BlurView>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
-    </View>
-  );
+            <KeyboardAvoidingView
+                style={styles.container}
+                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+            >
+                {/* Language Selector */}
+                <View style={styles.langArea}>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.langList}>
+                        {['English', 'Hindi', 'Marathi', 'Gujarati', 'Tamil'].map(l => (
+                            <Pressable
+                                key={l}
+                                style={({ pressed }) => [
+                                    styles.langChip,
+                                    language === l && styles.activeLang,
+                                    { opacity: pressed ? 0.8 : 1 }
+                                ]}
+                                onPress={() => setLanguage(l)}
+                            >
+                                <Text style={[styles.langText, language === l && styles.activeLangText]}>{l}</Text>
+                            </Pressable>
+                        ))}
+                    </ScrollView>
+                </View>
+
+                <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                    <View style={{ flex: 1 }}>
+                        <FlatList
+                            ref={listRef}
+                            data={messages}
+                            keyExtractor={(i) => i.id}
+                            renderItem={renderMessage}
+                            contentContainerStyle={styles.list}
+                            showsVerticalScrollIndicator={false}
+                            keyboardDismissMode="on-drag"
+                        />
+
+                        {isTyping && (
+                            <View style={styles.typingRow}>
+                                <BlurView intensity={30} tint="light" style={styles.typingBubble}>
+                                    <View style={styles.dot} />
+                                    <View style={[styles.dot, { opacity: 0.5 }]} />
+                                    <View style={[styles.dot, { opacity: 0.2 }]} />
+                                </BlurView>
+                            </View>
+                        )}
+                    </View>
+                </TouchableWithoutFeedback>
+
+                <BlurView intensity={80} tint="light" style={styles.inputArea}>
+                    <View style={styles.inputWrapper}>
+                        <TextInput
+                            placeholder="Ask JalSakhi AI..."
+                            placeholderTextColor="rgba(6, 78, 59, 0.3)"
+                            value={input}
+                            onChangeText={setInput}
+                            style={styles.input}
+                            multiline
+                        />
+                        <Pressable
+                            onPress={sendMessage}
+                            disabled={!input.trim()}
+                            style={({ pressed }) => [{ opacity: pressed ? 0.8 : 1 }]}
+                        >
+                            <LinearGradient
+                                colors={input.trim() ? ['#10b981', '#059669'] : ['#f1f5f9', '#e2e8f0']}
+                                style={styles.sendBtn}
+                            >
+                                <Ionicons name="send" size={18} color={input.trim() ? "white" : "#94a3b8"} />
+                            </LinearGradient>
+                        </Pressable>
+                    </View>
+                </BlurView>
+            </KeyboardAvoidingView>
+        </ScreenWrapper>
+    );
 }
 
 const styles = StyleSheet.create({
@@ -226,36 +209,37 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     paddingVertical: 12,
     gap: 12,
   },
   backBlur: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
+    width: 48,
+    height: 48,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(255,255,255,0.85)',
-    borderWidth: 1.2,
-    borderColor: '#E2E8F0',
+    ...Theme.shadows.soft,
+    borderWidth: 1,
+    borderColor: 'rgba(6, 78, 59, 0.05)',
   },
   headerTextContainer: {
     flex: 1,
   },
   title: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '900',
-    color: Theme.colors.text,
+    color: Theme.colors.forest,
     letterSpacing: -0.5,
   },
   onlineStatus: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  statusDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#10b981' },
-  statusTextLine: { fontSize: 12, color: Theme.colors.textMuted, fontWeight: '600' },
+  statusDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#10b981', ...Theme.shadows.soft },
+  statusTextLine: { fontSize: 12, color: 'rgba(6, 78, 59, 0.4)', fontWeight: '700', textTransform: 'uppercase' },
   backBtn: {},
   infoBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  list: { padding: 16, paddingBottom: 24 },
-  messageRow: { flexDirection: 'row', alignItems: 'flex-end', marginVertical: 8 },
+  list: { padding: 20, paddingBottom: 24 },
+  messageRow: { flexDirection: 'row', alignItems: 'flex-end', marginVertical: 10 },
   messageRowAssistant: { justifyContent: 'flex-start' },
   messageRowUser: { justifyContent: 'flex-end' },
   assistantAvatarBox: {
@@ -269,23 +253,22 @@ const styles = StyleSheet.create({
     borderColor: '#E2E8F0',
   },
   bubble: {
-    maxWidth: '80%',
+    maxWidth: '82%',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    borderRadius: 20,
-    borderWidth: 1.2,
-    borderColor: '#E2E8F0',
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(6, 78, 59, 0.08)',
+    ...Theme.shadows.soft,
   },
   bubbleAssistant: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1.2,
-    borderColor: '#E2E8F0',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
   },
   bubbleUser: {
-    backgroundColor: Theme.colors.primary,
+    backgroundColor: Theme.colors.forest,
   },
-  bubbleText: { fontSize: 15, lineHeight: 22, fontWeight: '500' },
-  bubbleTextAssistant: { color: Theme.colors.text },
+  bubbleText: { fontSize: 15, lineHeight: 22, fontWeight: '600' },
+  bubbleTextAssistant: { color: Theme.colors.forest },
   bubbleTextUser: { color: '#fff' },
   bubbleFooter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', marginTop: 4 },
   timeText: { fontSize: 10, color: Theme.colors.textMuted },
@@ -304,28 +287,29 @@ const styles = StyleSheet.create({
   },
   dot: { width: 5, height: 5, borderRadius: 2.5, backgroundColor: Theme.colors.primary },
   inputArea: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: 'rgba(255,255,255,0.7)',
     borderTopWidth: 1,
-    borderTopColor: 'rgba(0,0,0,0.05)',
+    borderTopColor: 'rgba(6, 78, 59, 0.05)',
   },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'white',
-    borderRadius: 22,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: 24,
     paddingHorizontal: 16,
     paddingVertical: 6,
-    borderWidth: 1.5,
-    borderColor: '#E2E8F0',
+    borderWidth: 1,
+    borderColor: 'rgba(6, 78, 59, 0.08)',
+    ...Theme.shadows.soft,
   },
   input: {
     flex: 1,
     fontSize: 15,
-    color: Theme.colors.text,
-    fontWeight: '600',
-    paddingVertical: 10,
+    color: Theme.colors.forest,
+    fontWeight: '700',
+    paddingVertical: 12,
+    maxHeight: 120,
   },
   sendBtn: {
     width: 38,

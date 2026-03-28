@@ -68,14 +68,12 @@ export default function LoginScreen() {
                         </TouchableOpacity>
 
                         {/* Logo */}
-                        <View style={{ alignItems: 'center', marginBottom: 24 }}>
-                            <View style={styles.logoWrap}>
-                                <Image
-                                    source={require('../../assets/images/logo.png')}
-                                    style={styles.logo}
-                                    resizeMode="contain"
-                                />
-                            </View>
+                        <View style={{ alignItems: 'center', marginBottom: 10 }}>
+                            <Image
+                                source={require('../../assets/images/logo.png')}
+                                style={styles.logo}
+                                resizeMode="contain"
+                            />
                         </View>
 
                         {/* Heading */}
@@ -150,22 +148,17 @@ const styles = StyleSheet.create({
     scroll: {
         flexGrow: 1,
         paddingHorizontal: 28,
-        paddingTop: 20,
+        paddingTop: 5,
         paddingBottom: 40,
     },
     backBtn: {
         width: 42, height: 42, borderRadius: 14,
         backgroundColor: 'rgba(255,255,255,0.75)',
         alignItems: 'center', justifyContent: 'center',
-        marginBottom: 36,
+        marginBottom: 10,
         ...Theme.shadows.soft,
     },
-    logoWrap: {
-        width: 100, height: 100, borderRadius: 30,
-        backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center',
-        ...Theme.shadows.medium,
-    },
-    logo: { width: 70, height: 70 },
+    logo: { width: 140, height: 140 },
     greeting: {
         fontSize: 38, fontWeight: '900', color: Theme.colors.text,
         letterSpacing: -1, lineHeight: 44,
