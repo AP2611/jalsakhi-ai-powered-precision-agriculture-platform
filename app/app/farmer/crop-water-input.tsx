@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, Dimensions, StatusBar } from 'react-native';
-import { useRouter } from 'expo-router';
+import { View, Text, TextInput, Pressable, StyleSheet, ScrollView, Alert, Dimensions, StatusBar } from 'react-native';
+import { useRouter, Stack } from 'expo-router';
 import { Theme } from '../../constants/JalSakhiTheme';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
+import { ScreenWrapper } from '../../components/shared/ScreenWrapper';
 
 import { MLService } from '../../services/ml';
 
@@ -96,10 +96,10 @@ export default function CropWaterInput() {
 
   const GlassCard = ({ title, icon, children, style }: any) => (
     <View style={[styles.glassCard, style]}>
-      <BlurView intensity={40} tint="light" style={styles.cardBlur}>
+      <BlurView intensity={60} tint="light" style={styles.cardBlur}>
         <View style={styles.cardHeader}>
           <View style={styles.cardIconBox}>
-            <MaterialCommunityIcons name={icon} size={20} color={Theme.colors.primary} />
+            <MaterialCommunityIcons name={icon} size={22} color={Theme.colors.forest} />
           </View>
           <Text style={styles.cardTitle}>{title}</Text>
         </View>
@@ -119,16 +119,20 @@ export default function CropWaterInput() {
         {options.map((option: string) => {
           const isSelected = selectedValue === option || (label === "Soil Type" && selectedValue === option.toUpperCase()) || (label === "Temp (°C) Range" && selectedValue === option);
           return (
-            <TouchableOpacity
+            <Pressable
               key={option}
-              style={[styles.chip, isSelected && styles.activeChip]}
+              style={({ pressed }) => [
+                styles.chip,
+                isSelected && styles.activeChip,
+                { opacity: pressed ? 0.8 : 1 }
+              ]}
               onPress={() => onValueChange(option)}
             >
               <Text style={[styles.chipText, isSelected && styles.activeChipText]}>
                 {option}
               </Text>
               {isSelected && <Ionicons name="checkmark-circle" size={14} color="white" style={{ marginLeft: 6 }} />}
-            </TouchableOpacity>
+            </Pressable>
           );
         })}
       </ScrollView>
@@ -136,200 +140,188 @@ export default function CropWaterInput() {
   );
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="dark-content" />
+    <ScreenWrapper contentContainerStyle={styles.scrollContent}>
+      <Stack.Screen options={{ headerShown: false }} />
 
-      {/* Decorative Background Lines */}
-      <View style={styles.decorativeLayer} pointerEvents="none">
-        <View style={[styles.designLine, { top: '10%', right: -40, transform: [{ rotate: '-45deg' }] }]} />
-        <View style={[styles.designLine, { bottom: '20%', left: -60, width: 250, transform: [{ rotate: '30deg' }] }]} />
+      {/* Header */}
+      <View style={styles.header}>
+        <Pressable
+          style={({ pressed }) => [styles.backBtn, { opacity: pressed ? 0.7 : 1 }]}
+          onPress={() => router.back()}
+        >
+          <BlurView intensity={60} tint="light" style={styles.backBlur}>
+            <Feather name="chevron-left" size={28} color={Theme.colors.forest} />
+          </BlurView>
+        </Pressable>
+        <View style={styles.headerTextContainer}>
+          <Text style={styles.title}>Crop Water</Text>
+          <Text style={styles.subtitle}>Predict precise irrigation needs</Text>
+        </View>
       </View>
 
-      <SafeAreaView style={{ flex: 1 }}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-            <BlurView intensity={60} tint="light" style={styles.backBlur}>
-              <Feather name="chevron-left" size={24} color={Theme.colors.text} />
-            </BlurView>
-          </TouchableOpacity>
-          <View style={styles.headerTextContainer}>
-            <Text style={styles.title}>Crop Water</Text>
-            <Text style={styles.subtitle}>Predict precise irrigation needs</Text>
-          </View>
-        </View>
+      {/* Main Form Section - Bento Style */}
+      <View style={styles.bentoGrid}>
+        <GlassCard title="Crop Details" icon="sprout" style={styles.fullWidth}>
+          <ChipSelector
+            label="Crop Type"
+            options={cropTypes}
+            selectedValue={formData.cropType}
+            onValueChange={(v: string) => setFormData({ ...formData, cropType: v })}
+          />
 
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
-          {/* Main Form Section - Bento Style */}
-          <View style={styles.bentoGrid}>
-
-            <GlassCard title="Crop Details" icon="sprout" style={styles.fullWidth}>
-              <ChipSelector
-                label="Crop Type"
-                options={cropTypes}
-                selectedValue={formData.cropType}
-                onValueChange={(v: string) => setFormData({ ...formData, cropType: v })}
-              />
-
-              <View style={styles.row}>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.miniLabel}>Growth Stage</Text>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipList}>
-                    {growthStages.map(s => (
-                      <TouchableOpacity
-                        key={s}
-                        style={[styles.chip, formData.growthStage === s && styles.activeChip]}
-                        onPress={() => setFormData({ ...formData, growthStage: s })}
-                      >
-                        <Text style={[styles.chipText, formData.growthStage === s && styles.activeChipText]}>{s}</Text>
-                      </TouchableOpacity>
-                    ))}
-                  </ScrollView>
-                </View>
-              </View>
-
-              <View style={[styles.inputGroup, { marginTop: 16 }]}>
-                <Text style={styles.miniLabel}>Soil State</Text>
-                <View style={styles.chipList}>
-                  {['DRY', 'HUMID', 'WET'].map(s => (
-                    <TouchableOpacity
-                      key={s}
-                      style={[styles.chip, formData.soilType === s && styles.activeChip]}
-                      onPress={() => setFormData({ ...formData, soilType: s })}
-                    >
-                      <Text style={[styles.chipText, formData.soilType === s && styles.activeChipText]}>{s} SOIL</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
-            </GlassCard>
-
-            <GlassCard title="Environment & Region" icon="thermometer" style={styles.fullWidth}>
-              <ChipSelector
-                label="Agro-Climatic Region"
-                options={regions}
-                selectedValue={formData.region}
-                onValueChange={(v: string) => setFormData({ ...formData, region: v })}
-              />
-
-              <ChipSelector
-                label="Weather Condition"
-                options={weatherConditions}
-                selectedValue={formData.weatherCondition}
-                onValueChange={(v: string) => setFormData({ ...formData, weatherCondition: v })}
-              />
-
-              <View style={styles.inputGroup}>
-                <Text style={styles.miniLabel}>Soil Moisture (%)</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="e.g., 45"
-                  placeholderTextColor="#94a3b8"
-                  keyboardType="decimal-pad"
-                  value={formData.soilMoisture}
-                  onChangeText={(t) => setFormData({ ...formData, soilMoisture: t })}
-                />
-              </View>
-              <View style={styles.row}>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.miniLabel}>Temp (°C) Range</Text>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipList}>
-                    {temperatureRanges.map(t => (
-                      <TouchableOpacity
-                        key={t}
-                        style={[styles.chip, formData.temperature === t && styles.activeChip]}
-                        onPress={() => setFormData({ ...formData, temperature: t })}
-                      >
-                        <Text style={[styles.chipText, formData.temperature === t && styles.activeChipText]}>{t}</Text>
-                      </TouchableOpacity>
-                    ))}
-                  </ScrollView>
-                </View>
-                <View style={styles.halfInput}>
-                  <Text style={styles.miniLabel}>Humidity (%)</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="e.g., 65"
-                    placeholderTextColor="#94a3b8"
-                    keyboardType="decimal-pad"
-                    value={formData.humidity}
-                    onChangeText={(t) => setFormData({ ...formData, humidity: t })}
-                  />
-                </View>
-              </View>
-            </GlassCard>
+          <View style={styles.row}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.miniLabel}>Growth Stage</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipList}>
+                {growthStages.map(s => (
+                  <Pressable
+                    key={s}
+                    style={({ pressed }) => [
+                      styles.chip,
+                      formData.growthStage === s && styles.activeChip,
+                      { opacity: pressed ? 0.8 : 1 }
+                    ]}
+                    onPress={() => setFormData({ ...formData, growthStage: s })}
+                  >
+                    <Text style={[styles.chipText, formData.growthStage === s && styles.activeChipText]}>{s}</Text>
+                  </Pressable>
+                ))}
+              </ScrollView>
+            </View>
           </View>
 
-          <TouchableOpacity
-            style={[styles.submitBtn, loading && styles.btnDisabled]}
-            onPress={handleSubmit}
-            disabled={loading}
-          >
-            <LinearGradient colors={['#10b981', '#059669']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.gradientBtn}>
-              <Feather name="zap" size={20} color="white" />
-              <Text style={styles.submitBtnText}>
-                {loading ? 'Analyzing...' : 'Get Recommendation'}
-              </Text>
-            </LinearGradient>
-          </TouchableOpacity>
-        </ScrollView >
-      </SafeAreaView >
-    </View >
+          <View style={[styles.inputGroup, { marginTop: 16 }]}>
+            <Text style={styles.miniLabel}>Soil State</Text>
+            <View style={styles.chipList}>
+              {['DRY', 'HUMID', 'WET'].map(s => (
+                <Pressable
+                  key={s}
+                  style={({ pressed }) => [
+                    styles.chip,
+                    formData.soilType === s && styles.activeChip,
+                    { opacity: pressed ? 0.8 : 1 }
+                  ]}
+                  onPress={() => setFormData({ ...formData, soilType: s })}
+                >
+                  <Text style={[styles.chipText, formData.soilType === s && styles.activeChipText]}>{s} SOIL</Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+        </GlassCard>
+
+        <GlassCard title="Environment & Region" icon="thermometer" style={styles.fullWidth}>
+          <ChipSelector
+            label="Agro-Climatic Region"
+            options={regions}
+            selectedValue={formData.region}
+            onValueChange={(v: string) => setFormData({ ...formData, region: v })}
+          />
+
+          <ChipSelector
+            label="Weather Condition"
+            options={weatherConditions}
+            selectedValue={formData.weatherCondition}
+            onValueChange={(v: string) => setFormData({ ...formData, weatherCondition: v })}
+          />
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.miniLabel}>Soil Moisture (%)</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="e.g., 45"
+              placeholderTextColor="rgba(6, 78, 59, 0.4)"
+              keyboardType="decimal-pad"
+              value={formData.soilMoisture}
+              onChangeText={(t) => setFormData({ ...formData, soilMoisture: t })}
+            />
+          </View>
+          <View style={styles.row}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.miniLabel}>Temp (°C) Range</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipList}>
+                {temperatureRanges.map(t => (
+                  <Pressable
+                    key={t}
+                    style={({ pressed }) => [
+                      styles.chip,
+                      formData.temperature === t && styles.activeChip,
+                      { opacity: pressed ? 0.8 : 1 }
+                    ]}
+                    onPress={() => setFormData({ ...formData, temperature: t })}
+                  >
+                    <Text style={[styles.chipText, formData.temperature === t && styles.activeChipText]}>{t}</Text>
+                  </Pressable>
+                ))}
+              </ScrollView>
+            </View>
+            <View style={styles.halfInput}>
+              <Text style={styles.miniLabel}>Humidity (%)</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="e.g., 65"
+                placeholderTextColor="rgba(6, 78, 59, 0.4)"
+                keyboardType="decimal-pad"
+                value={formData.humidity}
+                onChangeText={(t) => setFormData({ ...formData, humidity: t })}
+              />
+            </View>
+          </View>
+        </GlassCard>
+      </View>
+
+      <Pressable
+        style={({ pressed }) => [styles.submitBtn, loading && styles.btnDisabled, { opacity: pressed ? 0.9 : 1 }]}
+        onPress={handleSubmit}
+        disabled={loading}
+      >
+        <LinearGradient colors={['#10b981', '#059669']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.gradientBtn}>
+          <Feather name="zap" size={20} color="white" />
+          <Text style={styles.submitBtnText}>
+            {loading ? 'Analyzing...' : 'Get Recommendation'}
+          </Text>
+        </LinearGradient>
+      </Pressable>
+    </ScreenWrapper>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8FAFC',
-  },
-  decorativeLayer: {
-    ...StyleSheet.absoluteFillObject,
-    overflow: 'hidden',
-  },
-  designLine: {
-    position: 'absolute',
-    width: 300,
-    height: 1,
-    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingTop: 10,
-    paddingBottom: 20,
+    paddingBottom: 25,
     gap: 16,
   },
   backBtn: {},
   backBlur: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
+    width: 48,
+    height: 48,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.8)',
+    backgroundColor: 'rgba(255,255,255,0.85)',
+    ...Theme.shadows.soft,
     borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.05)',
+    borderColor: 'rgba(6, 78, 59, 0.05)',
   },
   headerTextContainer: {
     flex: 1,
   },
   title: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '900',
-    color: Theme.colors.text,
+    color: Theme.colors.forest,
     letterSpacing: -0.5,
   },
   subtitle: {
-    fontSize: 13,
-    color: Theme.colors.textMuted,
-  },
-  scrollView: {
-    flex: 1,
+    fontSize: 12,
+    color: 'rgba(6, 78, 59, 0.4)',
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
   scrollContent: {
     paddingHorizontal: 20,
@@ -344,13 +336,13 @@ const styles = StyleSheet.create({
   glassCard: {
     borderRadius: 24,
     overflow: 'hidden',
-    backgroundColor: 'transparent',
-    borderWidth: 1.5,
-    borderColor: '#E2E8F0',
+    backgroundColor: 'rgba(255, 255, 255, 0.65)',
+    borderWidth: 1,
+    borderColor: 'rgba(6, 78, 59, 0.08)',
+    ...Theme.shadows.soft,
   },
   cardBlur: {
-    padding: 20,
-    backgroundColor: 'rgba(255,255,255,0.4)',
+    padding: 24,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -359,17 +351,17 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   cardIconBox: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
+    width: 36,
+    height: 36,
+    borderRadius: 12,
     backgroundColor: 'rgba(16, 185, 129, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   cardTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: Theme.colors.text,
+    fontSize: 14,
+    fontWeight: '800',
+    color: Theme.colors.forest,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
@@ -378,10 +370,11 @@ const styles = StyleSheet.create({
   },
   miniLabel: {
     fontSize: 12,
-    fontWeight: '700',
-    color: Theme.colors.textMuted,
-    marginBottom: 6,
+    fontWeight: '800',
+    color: 'rgba(6, 78, 59, 0.4)',
+    marginBottom: 8,
     marginLeft: 4,
+    textTransform: 'uppercase',
   },
   chipList: {
     flexDirection: 'row',
@@ -392,34 +385,36 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 14,
-    backgroundColor: 'white',
-    borderWidth: 1.5,
-    borderColor: '#E2E8F0',
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderWidth: 1,
+    borderColor: 'rgba(6, 78, 59, 0.08)',
     flexDirection: 'row',
     alignItems: 'center',
+    ...Theme.shadows.soft,
   },
   activeChip: {
-    backgroundColor: Theme.colors.primary,
-    borderColor: Theme.colors.primary,
+    backgroundColor: Theme.colors.forest,
+    borderColor: Theme.colors.forest,
   },
   chipText: {
     fontSize: 14,
-    fontWeight: '700',
-    color: '#64748b',
+    fontWeight: '800',
+    color: 'rgba(6, 78, 59, 0.5)',
   },
   activeChipText: {
     color: 'white',
   },
   input: {
-    backgroundColor: 'white',
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
     borderRadius: 14,
     height: 56,
     paddingHorizontal: 16,
     fontSize: 16,
-    color: '#064e3b',
-    fontWeight: '700',
-    borderWidth: 1.5,
-    borderColor: '#E2E8F0',
+    color: Theme.colors.forest,
+    fontWeight: '800',
+    borderWidth: 1,
+    borderColor: 'rgba(6, 78, 59, 0.08)',
+    ...Theme.shadows.soft,
   },
   row: {
     flexDirection: 'row',
@@ -428,25 +423,11 @@ const styles = StyleSheet.create({
   halfInput: {
     flex: 1,
   },
-  inputWithIcon: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'white',
-    borderRadius: 14,
-    paddingRight: 12,
-    height: 56,
-    borderWidth: 1.5,
-    borderColor: '#E2E8F0',
-  },
-  inputIcon: {
-    marginLeft: 8,
-  },
   submitBtn: {
     marginTop: 24,
     borderRadius: 16,
     overflow: 'hidden',
-    borderWidth: 1.5,
-    borderColor: 'rgba(59, 130, 246, 0.3)',
+    ...Theme.shadows.soft,
   },
   gradientBtn: {
     height: 56,
