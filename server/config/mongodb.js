@@ -14,15 +14,17 @@ const connectDB = async () => {
     });
 
     try {
-        const uri = process.env.MONGODB_URI;
+        const localUri = "mongodb://localhost:27017/jalsakhi";
+        const uri = process.env.MONGODB_URI || localUri;
+
         if (!uri) {
             throw new Error('MONGODB_URI is not defined in environment variables');
         }
 
-        console.log('Attempting to connect to MongoDB...');
+        console.log(`Attempting to connect to MongoDB at ${uri.includes('cluster') ? 'Cloud' : 'Local'}...`);
         // We specify dbName in options instead of manipulating the URI string
         await mongoose.connect(uri, {
-            dbName: 'mern-auth',
+            dbName: 'jalsakhi',
         });
     } catch (error) {
         console.error('Failed to connect to MongoDB:', error.message);

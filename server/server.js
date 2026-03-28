@@ -16,7 +16,8 @@ connectDB();
 
 // Security and Middleware
 app.use(helmet());
-app.set('trust proxy', 1); // Trust Azure's proxy for secure cookies
+// Local system doesn't need 'trust proxy' for Azure, so we'll simplify.
+// app.set('trust proxy', 1); 
 
 app.use(express.json());
 app.use(cookieParser());

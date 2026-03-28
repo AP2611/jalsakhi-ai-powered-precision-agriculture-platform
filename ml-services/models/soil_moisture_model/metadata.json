@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "trained_at": "2026-02-21T17:56:30.997478Z",
+  "trained_at": "2026-03-28T06:15:38.155015Z",
   "split_ratios": {
     "train": 0.7,
     "val": 0.15,

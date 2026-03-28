@@ -30,7 +30,7 @@ export interface SoilMoistureInput {
 
 export const MLService = {
     /**
-     * Calls the Random Forest Regressor via Azure Proxy
+     * Calls the Random Forest Regressor via Local Server
      */
     predictWaterRequirement: async (input: CropPredictionInput): Promise<any> => {
         Logger.info('MLService', `Predicting water for ${input.crop_type}`);
