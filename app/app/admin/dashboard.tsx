@@ -1,15 +1,13 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Dimensions, TouchableOpacity, Image } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Text, StyleSheet, Dimensions, Pressable, Image, StatusBar } from 'react-native';
 import { Theme } from '../../constants/JalSakhiTheme';
 import { BentoCard } from '../../components/BentoCard';
-import { StatsWidget } from '../../components/StatsWidget';
 import { PieChart } from 'react-native-chart-kit';
 import { Feather, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
-
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
+import { ScreenWrapper } from '../../components/shared/ScreenWrapper';
+import { BlurView } from 'expo-blur';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -18,148 +16,160 @@ export default function AdminDashboard() {
     const { t } = useTranslation();
     const { user } = useAuth();
     return (
-        <SafeAreaView style={styles.container}>
-
-            <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-
-                {/* Header */}
-                <View style={styles.header}>
-                    <View style={styles.headerTopRow}>
-                        <View style={styles.brandingContainer}>
-                            <View style={styles.logoCircle}>
-                                <Image source={require('../../assets/images/logo.png')} style={styles.logo} resizeMode="contain" />
-                            </View>
-                            <View>
-                                <Text style={styles.welcomeText}>{t('dashboard.welcomeBack')} <Text style={styles.adminName}>{user?.name || 'Admin'}</Text></Text>
-                                <Text style={styles.dashboardTitle}>{t('admin.dashboard')}</Text>
-                            </View>
+        <ScreenWrapper contentContainerStyle={styles.scrollContent}>
+            {/* Header */}
+            <View style={styles.header}>
+                <View style={styles.headerTopRow}>
+                    <View style={styles.brandingContainer}>
+                        <View style={styles.logoCircle}>
+                            <Image source={require('../../assets/images/logo.png')} style={styles.logo} resizeMode="contain" />
                         </View>
-                        <TouchableOpacity style={styles.notifBtn} onPress={() => router.push('/notifications')}>
-                            <Feather name="bell" size={24} color="white" />
+                        <View>
+                            <Text style={styles.welcomeText}>{t('dashboard.welcomeBack')},</Text>
+                            <Text style={styles.adminName}>{user?.name || 'Admin'}</Text>
+                        </View>
+                    </View>
+                    <Pressable
+                        style={({ pressed }) => [styles.notifBtn, { opacity: pressed ? 0.7 : 1 }]}
+                        onPress={() => router.push('/notifications')}
+                    >
+                        <BlurView intensity={80} tint="light" style={styles.notifBlur}>
+                            <Feather name="bell" size={24} color={Theme.colors.forest} />
                             <View style={styles.badgeDot} />
-                        </TouchableOpacity>
-                    </View>
+                        </BlurView>
+                    </Pressable>
+                </View>
 
-                    <View style={styles.villageSelector}>
+                <View style={styles.villageSelector}>
+                    <BlurView intensity={20} tint="light" style={styles.villageBlur}>
                         <View style={styles.villageDropdown}>
-                            <MaterialIcons name="location-on" size={20} color="white" />
+                            <MaterialIcons name="location-on" size={20} color={Theme.colors.forest} />
                             <Text style={styles.selectedVillage}>Rampur Gram Panchayat</Text>
-                            <Feather name="chevron-down" size={20} color="rgba(255,255,255,0.7)" />
+                            <Feather name="chevron-down" size={20} color={Theme.colors.textMuted} />
                         </View>
-                        <Text style={styles.updatedTime}>Live Updates • Today 09:41 AM</Text>
+                    </BlurView>
+                    <Text style={styles.updatedTime}>Live Updates • Today 09:41 AM</Text>
+                </View>
+            </View>
+
+            {/* Live Activities / Stats */}
+            <View style={styles.statsRow}>
+                {/* Water Status */}
+                <View style={styles.statCard}>
+                    <View style={[styles.iconBox, { backgroundColor: '#e0f2fe' }]}>
+                        <MaterialCommunityIcons name="water-percent" size={24} color="#0ea5e9" />
                     </View>
+                    <Text style={styles.statVal}>2.8M L</Text>
+                    <Text style={styles.statLabel}>{t('admin.waterAvailable')}</Text>
+                    <Text style={styles.statSub}>+12% vs last week</Text>
                 </View>
 
-                {/* Live Activities / Stats */}
-                <View style={styles.statsRow}>
-                    {/* Water Status */}
-                    <View style={styles.statCard}>
-                        <View style={[styles.iconBox, { backgroundColor: '#e0f2fe' }]}>
-                            <MaterialCommunityIcons name="water-percent" size={24} color="#0ea5e9" />
-                        </View>
-                        <Text style={styles.statVal}>2.8M L</Text>
-                        <Text style={styles.statLabel}>{t('admin.waterAvailable')}</Text>
-                        <Text style={styles.statSub}>+12% vs last week</Text>
+                {/* Farmers */}
+                <View style={styles.statCard}>
+                    <View style={[styles.iconBox, { backgroundColor: '#dcfce7' }]}>
+                        <Feather name="users" size={24} color="#16a34a" />
                     </View>
-
-                    {/* Farmers */}
-                    <View style={styles.statCard}>
-                        <View style={[styles.iconBox, { backgroundColor: '#dcfce7' }]}>
-                            <Feather name="users" size={24} color="#16a34a" />
-                        </View>
-                        <Text style={styles.statVal}>284</Text>
-                        <Text style={styles.statLabel}>{t('admin.activeFarmers')}</Text>
-                        <Text style={styles.statSub}>24 New Requests</Text>
-                    </View>
-
-                    {/* Usage/Credits */}
-                    <View style={styles.statCard}>
-                        <View style={[styles.iconBox, { backgroundColor: '#fef9c3' }]}>
-                            <MaterialCommunityIcons name="hand-coin-outline" size={24} color="#ca8a04" />
-                        </View>
-                        <Text style={styles.statVal}>850k</Text>
-                        <Text style={styles.statLabel}>{t('admin.creditsDistributed')}</Text>
-                        <Text style={styles.statSub}>High Savings</Text>
-                    </View>
+                    <Text style={styles.statVal}>284</Text>
+                    <Text style={styles.statLabel}>{t('admin.activeFarmers')}</Text>
+                    <Text style={styles.statSub}>24 New Requests</Text>
                 </View>
 
-                {/* Main Bento Grid */}
-                <View style={styles.bentoGrid}>
+                {/* Usage/Credits */}
+                <View style={styles.statCard}>
+                    <View style={[styles.iconBox, { backgroundColor: '#fef9c3' }]}>
+                        <MaterialCommunityIcons name="hand-coin-outline" size={24} color="#ca8a04" />
+                    </View>
+                    <Text style={styles.statVal}>850k</Text>
+                    <Text style={styles.statLabel}>{t('admin.creditsDistributed')}</Text>
+                    <Text style={styles.statSub}>High Savings</Text>
+                </View>
+            </View>
 
-                    {/* Alerts Section */}
-                    <BentoCard colSpan={2} title={t('admin.criticalAlerts')}>
-                        <TouchableOpacity onPress={() => router.push('/admin/anomalies')}>
-                            <View style={styles.alertItem}>
-                                <View style={styles.alertIconBox}>
+            {/* Main Bento Grid */}
+            <View style={styles.bentoGrid}>
+
+                {/* Alerts Section */}
+                <BentoCard colSpan={2} title={t('admin.criticalAlerts')}>
+                    <Pressable
+                        style={({ pressed }) => [{ opacity: pressed ? 0.8 : 1 }]}
+                        onPress={() => router.push('/admin/anomalies')}
+                    >
+                        <View style={styles.alertItem}>
+                            <View style={styles.alertIconBox}>
+                                <View style={[styles.innerIconBox, { backgroundColor: 'rgba(239, 68, 68, 0.1)' }]}>
                                     <Feather name="alert-triangle" size={20} color={Theme.colors.error} />
                                 </View>
-                                <View style={{ flex: 1 }}>
-                                    <Text style={styles.alertTitle}>{t('admin.waterShortageDetected')}</Text>
-                                    <Text style={styles.alertDesc}>Sector 4 is at 15% capacity. Immediate allocation needed.</Text>
-                                </View>
-                                <View style={styles.actionBadge}>
-                                    <Text style={styles.actionText}>{t('admin.resolve')}</Text>
-                                </View>
                             </View>
-                        </TouchableOpacity>
+                            <View style={{ flex: 1 }}>
+                                <Text style={styles.alertTitle}>{t('admin.waterShortageDetected')}</Text>
+                                <Text style={styles.alertDesc}>Sector 4 is at 15% capacity. Immediate allocation needed.</Text>
+                            </View>
+                            <View style={styles.actionBadge}>
+                                <Text style={styles.actionText}>{t('admin.resolve')}</Text>
+                            </View>
+                        </View>
+                    </Pressable>
 
-                        <View style={styles.divider} />
+                    <View style={styles.divider} />
 
-                        <TouchableOpacity onPress={() => router.push('/admin/approvals')}>
-                            <View style={styles.alertItem}>
-                                <View style={[styles.alertIconBox, { backgroundColor: '#fff7ed' }]}>
-                                    <Feather name="user-check" size={20} color="#ea580c" />
+                    <Pressable
+                        style={({ pressed }) => [{ opacity: pressed ? 0.8 : 1 }]}
+                        onPress={() => router.push('/admin/approvals')}
+                    >
+                        <View style={styles.alertItem}>
+                            <View style={styles.alertIconBox}>
+                                <View style={[styles.innerIconBox, { backgroundColor: 'rgba(245, 158, 11, 0.1)' }]}>
+                                    <Feather name="user-check" size={20} color="#f59e0b" />
                                 </View>
-                                <View style={{ flex: 1 }}>
-                                    <Text style={styles.alertTitle}>{t('admin.farmerApprovalsPending')}</Text>
-                                    <Text style={styles.alertDesc}>7 new farmers waiting for approval in Rampur.</Text>
-                                </View>
-                                <Feather name="chevron-right" size={20} color={Theme.colors.textMuted} />
                             </View>
-                        </TouchableOpacity>
-                    </BentoCard>
+                            <View style={{ flex: 1 }}>
+                                <Text style={styles.alertTitle}>{t('admin.farmerApprovalsPending')}</Text>
+                                <Text style={styles.alertDesc}>7 new farmers waiting for approval in Rampur.</Text>
+                            </View>
+                            <Feather name="chevron-right" size={20} color="rgba(6, 78, 59, 0.3)" />
+                        </View>
+                    </Pressable>
+                </BentoCard>
 
-                    {/* ML Model Entry */}
-                    <BentoCard colSpan={2} style={{ backgroundColor: '#f0fdf4', borderColor: '#bbf7d0' }}>
-                        <TouchableOpacity
-                            style={styles.mlCardContent}
-                            onPress={() => router.push('/admin/water-allocation-optimization')} // Pointing to existing screen
-                        >
-                            <View>
-                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                                    <MaterialCommunityIcons name="molecule" size={24} color={Theme.colors.primary} />
-                                    <Text style={[styles.cardTitle, { color: Theme.colors.primary }]}>{t('admin.aiModel')}</Text>
-                                </View>
-                                <Text style={styles.mlDesc}>Run "Village-Level Water Allocation" to fix Sector 4 shortage.</Text>
+                {/* ML Model Entry */}
+                <BentoCard colSpan={2} style={{ backgroundColor: 'rgba(16, 185, 129, 0.08)', borderColor: 'rgba(16, 185, 129, 0.15)' }}>
+                    <Pressable
+                        style={({ pressed }) => [styles.mlCardContent, { opacity: pressed ? 0.8 : 1 }]}
+                        onPress={() => router.push('/admin/water-allocation-optimization')} 
+                    >
+                        <View>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                                <MaterialCommunityIcons name="molecule" size={26} color={Theme.colors.primary} />
+                                <Text style={[styles.cardTitle, { color: Theme.colors.forest }]}>{t('admin.aiModel')}</Text>
                             </View>
-                            <View style={styles.playBtn}>
-                                <Feather name="play" size={20} color="white" />
-                            </View>
-                        </TouchableOpacity>
-                    </BentoCard>
+                            <Text style={styles.mlDesc}>Run "Village-Level Water Allocation" to fix Sector 4 shortage.</Text>
+                        </View>
+                        <View style={[styles.playBtn, Theme.shadows.soft]}>
+                            <Feather name="play" size={20} color="white" />
+                        </View>
+                    </Pressable>
+                </BentoCard>
 
-                    {/* Internal AI Tools Entry */}
-                    <BentoCard colSpan={2} style={{ backgroundColor: '#f8fafc', borderColor: '#e2e8f0' }}>
-                        <TouchableOpacity
-                            style={styles.mlCardContent}
-                            onPress={() => router.push('/admin/internal-ai' as any)}
-                        >
-                            <View>
-                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                                    <MaterialCommunityIcons name="test-tube" size={24} color={Theme.colors.textMuted} />
-                                    <Text style={[styles.cardTitle, { color: Theme.colors.text }]}>Internal AI Tools</Text>
-                                </View>
-                                <Text style={styles.mlDesc}>Test experimental Model 1 & 2 endpoints with custom JSON payloads.</Text>
+                {/* Internal AI Tools Entry */}
+                <BentoCard colSpan={2} style={{ backgroundColor: 'rgba(71, 85, 105, 0.05)', borderColor: 'rgba(71, 85, 105, 0.1)' }}>
+                    <Pressable
+                        style={({ pressed }) => [styles.mlCardContent, { opacity: pressed ? 0.8 : 1 }]}
+                        onPress={() => router.push('/admin/internal-ai' as any)}
+                    >
+                        <View>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                                <MaterialCommunityIcons name="test-tube" size={26} color="#64748b" />
+                                <Text style={[styles.cardTitle, { color: Theme.colors.forest }]}>Internal AI Tools</Text>
                             </View>
-                            <View style={[styles.playBtn, { backgroundColor: Theme.colors.textMuted }]}>
-                                <Feather name="settings" size={20} color="white" />
-                            </View>
-                        </TouchableOpacity>
-                    </BentoCard>
-
-                </View>
-            </ScrollView>
-        </SafeAreaView>
+                            <Text style={styles.mlDesc}>Test experimental Model 1 & 2 endpoints with custom JSON payloads.</Text>
+                        </View>
+                        <View style={[styles.playBtn, { backgroundColor: '#64748b' }, Theme.shadows.soft]}>
+                            <Feather name="settings" size={20} color="white" />
+                        </View>
+                    </Pressable>
+                </BentoCard>
+            </View>
+        </ScreenWrapper>
     );
 }
 
@@ -169,22 +179,13 @@ const styles = StyleSheet.create({
         backgroundColor: Theme.colors.bg,
     },
     scrollContent: {
-        padding: 16,
+        paddingHorizontal: 20,
         paddingBottom: 40,
     },
     header: {
-        backgroundColor: Theme.colors.primary,
-        paddingTop: 20,
-        paddingHorizontal: 20,
+        paddingTop: 10,
         paddingBottom: 24,
-        borderBottomLeftRadius: 24,
-        borderBottomRightRadius: 24,
-        marginBottom: 20,
-        elevation: 4,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
+        marginBottom: 10,
     },
     headerTopRow: {
         flexDirection: 'row',
@@ -198,76 +199,83 @@ const styles = StyleSheet.create({
         gap: 16,
     },
     logoCircle: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
+        width: 72,
+        height: 72,
+        borderRadius: 24,
         backgroundColor: 'white',
         justifyContent: 'center',
         alignItems: 'center',
-        elevation: 5,
+        ...Theme.shadows.soft,
     },
     logo: {
-        width: 65,
-        height: 65,
+        width: 54,
+        height: 54,
     },
     welcomeText: {
-        fontSize: 16,
-        color: 'rgba(255,255,255,0.9)',
+        fontSize: 14,
+        color: 'rgba(6, 78, 59, 0.5)',
         fontWeight: '600',
+        textTransform: 'uppercase',
+        letterSpacing: 0.8,
     },
     adminName: {
-        color: 'white',
-        fontWeight: 'bold',
-        fontSize: 22,
-    },
-    dashboardTitle: {
-        display: 'none', // Hidden as requested
+        color: Theme.colors.forest,
+        fontWeight: '900',
+        fontSize: 28,
+        letterSpacing: -0.5,
     },
     notifBtn: {
-        width: 44,
-        height: 44,
+        overflow: 'hidden',
+        borderRadius: 18,
+        ...Theme.shadows.soft,
+    },
+    notifBlur: {
+        width: 52,
+        height: 52,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'rgba(255,255,255,0.2)',
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.1)',
+        backgroundColor: 'rgba(255,255,255,0.8)',
     },
     badgeDot: {
         position: 'absolute',
-        top: 10,
-        right: 12,
-        width: 8,
-        height: 8,
-        borderRadius: 4,
+        top: 15,
+        right: 15,
+        width: 10,
+        height: 10,
+        borderRadius: 5,
         backgroundColor: Theme.colors.error,
-        borderWidth: 1,
+        borderWidth: 2,
         borderColor: 'white',
     },
     villageSelector: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        backgroundColor: 'rgba(255,255,255,0.15)',
-        padding: 12,
-        borderRadius: 12,
+        marginBottom: 10,
+    },
+    villageBlur: {
+        borderRadius: 16,
+        overflow: 'hidden',
+        backgroundColor: 'rgba(255,255,255,0.4)',
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.2)',
+        borderColor: 'rgba(6, 78, 59, 0.08)',
     },
     villageDropdown: {
         flexDirection: 'row',
         alignItems: 'center',
         gap: 8,
+        padding: 12,
+        paddingHorizontal: 16,
     },
     selectedVillage: {
-        fontSize: 14,
-        fontWeight: 'bold',
-        color: 'white',
+        fontSize: 15,
+        fontWeight: '800',
+        color: Theme.colors.forest,
+        flex: 1,
     },
     updatedTime: {
         fontSize: 11,
-        color: 'rgba(255,255,255,0.8)',
-        fontWeight: '500',
+        color: 'rgba(6, 78, 59, 0.4)',
+        fontWeight: '700',
+        marginTop: 8,
+        textAlign: 'right',
     },
     statsRow: {
         flexDirection: 'row',
@@ -277,40 +285,39 @@ const styles = StyleSheet.create({
     },
     statCard: {
         flex: 1,
-        backgroundColor: 'white',
-        borderRadius: 16,
-        padding: 12,
-        elevation: 2,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 4,
+        backgroundColor: 'rgba(255, 255, 255, 0.65)',
+        borderRadius: 20,
+        padding: 16,
+        borderWidth: 1,
+        borderColor: 'rgba(6, 78, 59, 0.08)',
+        ...Theme.shadows.soft,
         alignItems: 'flex-start',
     },
     iconBox: {
-        width: 32,
-        height: 32,
-        borderRadius: 8,
+        width: 36,
+        height: 36,
+        borderRadius: 10,
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 8,
+        marginBottom: 10,
     },
     statVal: {
-        fontSize: 18,
-        fontWeight: '800',
-        color: Theme.colors.text,
+        fontSize: 20,
+        fontWeight: '900',
+        color: Theme.colors.forest,
         marginBottom: 2,
     },
     statLabel: {
         fontSize: 11,
-        color: Theme.colors.textMuted,
-        fontWeight: '600',
+        color: 'rgba(6, 78, 59, 0.4)',
+        fontWeight: '800',
         marginBottom: 4,
+        textTransform: 'uppercase',
     },
     statSub: {
         fontSize: 10,
-        color: Theme.colors.success,
-        fontWeight: '600',
+        color: Theme.colors.primary,
+        fontWeight: '800',
     },
     bentoGrid: {
         gap: 16,
@@ -322,33 +329,40 @@ const styles = StyleSheet.create({
         paddingVertical: 8,
     },
     alertIconBox: {
+        width: 44,
+        height: 44,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    innerIconBox: {
         width: 36,
         height: 36,
-        borderRadius: 8,
-        backgroundColor: '#fef2f2',
+        borderRadius: 10,
         justifyContent: 'center',
         alignItems: 'center',
     },
     alertTitle: {
-        fontSize: 14,
-        fontWeight: 'bold',
-        color: Theme.colors.text,
+        fontSize: 16,
+        fontWeight: '800',
+        color: Theme.colors.forest,
         marginBottom: 2,
     },
     alertDesc: {
-        fontSize: 12,
-        color: Theme.colors.textMuted,
+        fontSize: 13,
+        color: 'rgba(6, 78, 59, 0.5)',
+        fontWeight: '500',
     },
     actionBadge: {
         backgroundColor: Theme.colors.error,
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 6,
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        borderRadius: 8,
     },
     actionText: {
         color: 'white',
-        fontSize: 10,
-        fontWeight: 'bold',
+        fontSize: 11,
+        fontWeight: '900',
+        textTransform: 'uppercase',
     },
     mlCardContent: {
         flexDirection: 'row',

@@ -14,7 +14,6 @@ secrets/
 config/secrets.json
 
 # ============ Python ============
-# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
@@ -43,8 +42,9 @@ env/
 .venv
 .python-version
 
-# ML model artifacts (regenerate with train.py)
+# ML model artifacts (IMPORTANT - merged both)
 *.joblib
+soil_moisture_model/*.joblib
 *.pkl
 *.pickle
 *.h5
@@ -60,18 +60,15 @@ checkpoints/
 .ipynb_checkpoints
 *.ipynb_checkpoints/
 
-# PyCharm
+# IDEs
 .idea/
 *.iml
 *.ipr
 *.iws
-
-# VS Code
 .vscode/
 *.code-workspace
 
 # ============ Node.js ============
-# Dependencies
 node_modules/
 npm-debug.log*
 yarn-debug.log*
@@ -79,7 +76,7 @@ yarn-error.log*
 lerna-debug.log*
 .pnpm-debug.log*
 
-# Package manager lock files (optional - remove if you want to track them)
+# Lock files (optional)
 package-lock.json
 yarn.lock
 pnpm-lock.yaml
@@ -91,12 +88,10 @@ out/
 *.tsbuildinfo
 
 # ============ React Native / Expo ============
-# Expo
 .expo/
 .expo-shared/
 expo-env.d.ts
 
-# React Native
 .react-native/
 android/.gradle/
 android/app/build/
@@ -109,7 +104,6 @@ ios/*.xcworkspace
 !ios/*.xcworkspace/contents.xcworkspacedata
 *.xcuserstate
 
-# Metro bundler
 .metro-health-check*
 *.jsbundle
 
@@ -125,88 +119,44 @@ junit.xml
 *.db-journal
 *.log
 
-# MongoDB
 data/
 mongodb/
 
-# ============ OS & Editor ============
-# macOS
+# ============ OS Files ============
 .DS_Store
-.AppleDouble
-.LSOverride
-._*
-.DocumentRevisions-V100
-.fseventsd
-.Spotlight-V100
-.TemporaryItems
-.Trashes
-.VolumeIcon.icns
-.com.apple.timemachine.donotpresent
-
-# Windows
 Thumbs.db
-Thumbs.db:encryptable
 ehthumbs.db
-ehthumbs_vista.db
-*.stackdump
-[Dd]esktop.ini
+Desktop.ini
 $RECYCLE.BIN/
-*.lnk
-
-# Linux
-*~
-.directory
-.Trash-*
 
 # ============ Build & Deployment ============
-# EAS Build
 eas-build-*/
 *.aab
 *.apk
 *.ipa
-
-# Deployment artifacts
 deploy/
 .deployment
-
-# ============ Testing & CI/CD ============
-.github/workflows/*.log
-test-results/
-screenshots/
-reports/
 
 # ============ Logs ============
 logs/
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
 
-# ============ Temporary Files ============
+# ============ Temp ============
 tmp/
 temp/
 *.tmp
-*.swp
-*.swo
-*~
 .cache/
 
 # ============ Project Specific ============
-# Large datasets (document in README how to obtain)
 *.csv
 !**/DATASET*.csv
 !**/sample*.csv
 
-# Generated docs
 docs/_build/
 site/
 
-# Backup files
 *.bak
 *.backup
 *-backup.*
-.agent
-.agents
+
 landing-page/
